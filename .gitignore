@@ -1,0 +1,17 @@
+# Python environment
+venv/
+__pycache__/
+
+# Frontend dependencies
+frontend/node_modules/
+frontend/dist/
+
+# Mac OS files
+.DS_Store
+
+# Temporary audio and MIDI files
+*.wav
+*.mp3
+*.mid
+*.xml
+temp_*

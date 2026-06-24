@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import SheetMusic from './SheetMusic'
 import './App.css'
+import 'html-midi-player' // Import the MIDI player web components
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
-  const [xmlData, setXmlData] = useState(null) // NEW: State to hold the sheet music data
+  const [xmlData, setXmlData] = useState(null) 
+  const [midiUrl, setMidiUrl] = useState(null) // State to hold the playable audio URL
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0])
     setStatusMessage('')
-    setXmlData(null) // Clear old sheet music when a new file is picked
+    setXmlData(null) 
+    setMidiUrl(null) // Clear old audio when a new file is picked
   }
 
   const handleUpload = async () => {
@@ -33,7 +36,13 @@ function App() {
 
       if (data.status === 'success') {
         setStatusMessage('Success! Rendering sheet music...')
-        setXmlData(data.xml_data) // NEW: Save the XML string to state
+        setXmlData(data.xml_data) 
+        
+        // Convert the backend Base64 string into a playable Data URI
+        if (data.midi_data) {
+          const base64Midi = `data:audio/midi;base64,${data.midi_data}`
+          setMidiUrl(base64Midi)
+        }
       } else {
         setStatusMessage(`Error: ${data.message}`)
       }
@@ -59,7 +68,38 @@ function App() {
 
       {statusMessage && <div className="status-message">{statusMessage}</div>}
       
-      {/* NEW: If we have XML data, render the SheetMusic component! */}
+      {/* The Interactive Playback UI */}
+      {midiUrl && (
+        <div style={{ margin: '20px 0', padding: '20px', backgroundColor: '#1e1e1e', borderRadius: '8px', border: '1px solid #444' }}>
+          <h3 style={{ marginTop: 0 }}>Listen to AI Transcription</h3>
+          <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '15px' }}>
+            Compare this synthesized playback with your original audio to check for missing notes or timing errors.
+          </p>
+          
+          {/* The Audio Controls */}
+          <midi-player
+            src={midiUrl}
+            sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
+            style={{ width: '100%', display: 'block', marginBottom: '10px' }}
+          ></midi-player>
+          
+          {/* Wrap the visualizer in a hard, white container */}
+          <div style={{ 
+            backgroundColor: '#ffffff', 
+            padding: '10px', 
+            borderRadius: '4px', 
+            marginBottom: '30px', 
+            overflow: 'hidden',
+            border: '1px solid #ccc'
+          }}>
+            <midi-visualizer 
+              type="piano-roll" 
+              src={midiUrl}
+            ></midi-visualizer>
+          </div>
+        </div> /* <-- THIS WAS THE MISSING BRACKET! */
+      )}
+
       {xmlData && <SheetMusic xmlData={xmlData} />}
     </div>
   )

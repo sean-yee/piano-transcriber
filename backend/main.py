@@ -67,7 +67,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
             temp_file_path,
             minimum_note_length=120.0,
             multiple_pitch_bends=False,
-            onset_threshold=0.6,
+            onset_threshold=0.65,
             frame_threshold=0.45 
         )
         
@@ -92,16 +92,29 @@ async def transcribe_audio(file: UploadFile = File(...)):
             if 0 < gap <= 0.25:
                 current_el.quarterLength += gap
                 
+        # --- FIX: Setup Grand Staff with strict Naming rules ---
         right_hand = stream.Part()
         right_hand.id = 'RightHand'
-        right_hand.insert(0, instrument.Piano())
+        
+        rh_inst = instrument.Piano()
+        rh_inst.instrumentName = 'Piano'
+        rh_inst.instrumentAbbreviation = ' ' # Space prevents 'Pno' from overlapping the lines!
+        
+        right_hand.insert(0, rh_inst)
+        right_hand.partName = 'Piano'
+        right_hand.partAbbreviation = ' '
         right_hand.insert(0, clef.TrebleClef())
         
         left_hand = stream.Part()
         left_hand.id = 'LeftHand'
-        left_hand.insert(0, instrument.Piano())
-        left_hand.partName = ''
-        left_hand.partAbbreviation = ''
+        
+        lh_inst = instrument.Piano()
+        lh_inst.instrumentName = ' ' # Space stops the random 'Instr. Pc0b0c...' UUID string!
+        lh_inst.instrumentAbbreviation = ' '
+        
+        left_hand.insert(0, lh_inst)
+        left_hand.partName = ' '
+        left_hand.partAbbreviation = ' '
         left_hand.insert(0, clef.BassClef())
         
         # --- NEW: Track current clefs for dynamic octave/clef changes ---

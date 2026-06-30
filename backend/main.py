@@ -2,6 +2,7 @@ import os
 import base64
 import copy
 import numpy as np
+import pandas as pd  # --- NEW: Import Pandas for Data Science ---
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from basic_pitch.inference import predict
@@ -18,38 +19,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- THE UPGRADED CLASSIFIER (Feature Engineering) ---
+# --- THE UPGRADED CLASSIFIER (Using Pandas & CSV Data) ---
 def train_hand_classifier():
     """
-    Features: [Pitch, Duration, Concurrent_Notes, Dist_To_Highest, Dist_To_Lowest]
-    Labels: 0 (Left Hand), 1 (Right Hand)
+    Loads training data from a real CSV dataset instead of hardcoded arrays.
+    This is scalable and allows you to train the AI on thousands of notes!
     """
-    X_train = np.array([
-        # Scenario 1: Single notes (standard playing)
-        [40, 1.0, 1, 0, 0],  # Low note alone -> Left
-        [80, 1.0, 1, 0, 0],  # High note alone -> Right
+    try:
+        # 1. Read the CSV file using Pandas
+        df = pd.read_csv('training_data.csv')
         
-        # Scenario 2: Standard 3-note chord (around Middle C)
-        [60, 1.0, 3, 7, 0],  # Bottom of chord -> Left
-        [64, 1.0, 3, 3, 4],  # Middle of chord -> Right
-        [67, 1.0, 3, 0, 7],  # Top of chord -> Right
+        # 2. Separate the Features (X) from the Answer Key (y)
+        feature_columns = ['Pitch', 'Duration', 'Concurrent_Notes', 'Dist_To_Highest', 'Dist_To_Lowest']
+        X_train = df[feature_columns].values
+        y_train = df['Hand_Label'].values
         
-        # Scenario 3: THE EDGE CASE (Both hands playing very high)
-        # 6 notes playing concurrently between pitch 75 and 87
-        [75, 1.0, 6, 12, 0], # Absolute lowest of the cluster -> Left
-        [79, 1.0, 6, 8, 4],  # Second lowest -> Left
-        [81, 1.0, 6, 6, 6],  # Middle-low -> Left
-        [84, 1.0, 6, 3, 9],  # Middle-high -> Right
-        [86, 1.0, 6, 1, 11], # Upper -> Right
-        [87, 1.0, 6, 0, 12]  # Absolute highest -> Right
-    ])
-    
-    y_train = np.array([0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1])
-    
-    clf = RandomForestClassifier(n_estimators=25, random_state=42)
-    clf.fit(X_train, y_train)
-    return clf
+        # 3. Initialize and train the Random Forest
+        clf = RandomForestClassifier(n_estimators=25, random_state=42)
+        clf.fit(X_train, y_train)
+        print("✅ Successfully trained AI model using training_data.csv")
+        return clf
+        
+    except Exception as e:
+        print(f"❌ Error loading CSV: {e}")
+        # Fallback to a tiny dataset if the file isn't found so the server doesn't crash
+        X_train = np.array([[40, 1.0, 1, 0, 0], [80, 1.0, 1, 0, 0]])
+        y_train = np.array([0, 1])
+        clf = RandomForestClassifier(n_estimators=25, random_state=42)
+        clf.fit(X_train, y_train)
+        return clf
 
+# Load the model into memory when the server starts
 hand_classifier = train_hand_classifier()
 
 @app.get("/")

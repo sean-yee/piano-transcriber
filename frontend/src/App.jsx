@@ -27,7 +27,7 @@ function App() {
     formData.append('file', selectedFile)
 
     try {
-      const response = await fetch('http://localhost:8000/transcribe', {
+      const response = await fetch('https://seanyee-piano-transcriber.hf.space/transcribe', {
         method: 'POST',
         body: formData,
       })

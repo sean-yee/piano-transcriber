@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "html-midi-player": "^1.6.0",
     "opensheetmusicdisplay": "^2.0.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

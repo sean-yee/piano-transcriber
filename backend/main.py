@@ -45,8 +45,8 @@ async def transcribe_audio(file: UploadFile = File(...)):
             temp_file_path,
             minimum_note_length=120.0,
             multiple_pitch_bends=False,
-            onset_threshold=0.65,
-            frame_threshold=0.55 
+            onset_threshold=0.625,
+            frame_threshold=0.495 
         )
         
         temp_midi_path = temp_file_path.replace(os.path.splitext(temp_file_path)[1], ".mid")

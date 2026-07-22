@@ -1,75 +1,165 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { OpenSheetMusicDisplay } from 'opensheetmusicdisplay';
+import AudioPlayer from 'osmd-audio-player';
 
 export default function SheetMusic({ xmlData }) {
   const containerRef = useRef(null);
+  const osmdRef = useRef(null);
+  const audioPlayerRef = useRef(null);
+  
+  const [isReady, setIsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if (!xmlData || !containerRef.current) return;
 
-    // Function to initialize and render the sheet music
-    const renderSheetMusic = () => {
-      if (!window.opensheetmusicdisplay) return;
+    setIsReady(false);
+    setIsPlaying(false);
+    containerRef.current.innerHTML = '';
 
-      // Clear out the container before rendering a new one
-      containerRef.current.innerHTML = '';
+    // 1. Initialize OSMD with NATIVE cursor settings built-in!
+    osmdRef.current = new OpenSheetMusicDisplay(containerRef.current, {
+      autoResize: true,
+      backend: "svg", 
+      drawTitle: false, 
+      followCursor: true, // Tell OSMD to track the cursor
+      cursorsOptions: [{ type: 0, color: "#ef4444", alpha: 0.6, size: 4 }] // Native Red Cursor!
+    });
 
-      const osmd = new window.opensheetmusicdisplay.OpenSheetMusicDisplay(containerRef.current, {
-        autoResize: true,
-        backend: "svg", // Explicitly use SVG so notes scale smoothly
-        drawTitle: false, // Hide the title to keep the UI clean
-      });
+    audioPlayerRef.current = new AudioPlayer();
 
-      osmd.load(xmlData).then(() => {
-        // Slightly zoom out to give the measures extra breathing room
-        osmd.zoom = 0.9; 
-        osmd.render();
-      }).catch((error) => {
+    const loadMusic = async () => {
+      try {
+        // 1. FIRST, actually load and draw the sheet music! (I accidentally deleted this earlier)
+        await osmdRef.current.load(xmlData);
+        osmdRef.current.zoom = 0.9;
+        osmdRef.current.render();
+
+        // 2. THEN load the audio player so it hooks into the drawn music
+        await audioPlayerRef.current.loadScore(osmdRef.current);
+
+        // 3. Show the cursor and force it to calculate its starting position
+        osmdRef.current.cursor.show();
+        osmdRef.current.cursor.update();
+
+        // 4. THE SCALPEL (Adding visual styles without breaking top/left coordinates)
+        if (osmdRef.current.cursor.cursorElement) {
+          const cursorStyle = osmdRef.current.cursor.cursorElement.style;
+          
+          cursorStyle.setProperty('width', '4px', 'important');
+          cursorStyle.setProperty('height', '108px', 'important');
+          cursorStyle.setProperty('background-color', '#ef4444', 'important');
+          cursorStyle.setProperty('z-index', '9999', 'important');
+          cursorStyle.setProperty('opacity', '0.6', 'important');
+        }
+
+        setIsReady(true);
+      } catch (error) {
         console.error("Oops! Something went wrong drawing the sheet music:", error);
-      });
+      }
     };
 
-    // Load the library dynamically to completely avoid build errors
-    if (window.opensheetmusicdisplay) {
-      renderSheetMusic();
-    } else {
-      const scriptId = 'osmd-script';
-      let script = document.getElementById(scriptId);
-
-      if (!script) {
-        script = document.createElement('script');
-        script.id = scriptId;
-        script.src = "https://unpkg.com/opensheetmusicdisplay@1.8.8/build/opensheetmusicdisplay.min.js";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-
-      script.addEventListener('load', renderSheetMusic);
-
-      return () => {
-        script.removeEventListener('load', renderSheetMusic);
-      };
-    }
+    loadMusic();
 
     return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (audioPlayerRef.current) {
+        try {
+          if (audioPlayerRef.current.osmd) {
+            audioPlayerRef.current.stop();
+          }
+        } catch (err) {
+          console.warn("Skipped audio cleanup.");
+        }
       }
     };
   }, [xmlData]);
 
+  const togglePlay = () => {
+    if (!audioPlayerRef.current || !isReady) return;
+    if (isPlaying) {
+      audioPlayerRef.current.pause();
+    } else {
+      audioPlayerRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const stopPlay = () => {
+    if (!audioPlayerRef.current || !isReady) return;
+    audioPlayerRef.current.stop();
+    setIsPlaying(false);
+    
+    if (osmdRef.current && osmdRef.current.cursor) {
+      osmdRef.current.cursor.reset(); 
+    }
+  };
+
+  const handleDownload = () => {
+    if (!xmlData) return;
+    const blob = new Blob([xmlData], { type: 'application/vnd.recordare.musicxml+xml' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = "AI_Transcription.musicxml"; 
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    window.print(); 
+  };
+
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        width: '100%', 
-        maxWidth: '100%', // Prevents the div from expanding past boundaries
-        minHeight: '400px', 
-        marginTop: '20px', 
-        backgroundColor: 'white', 
-        borderRadius: '8px',
-        overflowX: 'auto', // Adds a horizontal scrollbar if the music overflows
-        overflowY: 'hidden'
-      }} 
-    />
+    <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden">
+      
+      <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4">
+        <h3 className="font-extrabold text-slate-800 text-xl flex items-center gap-2">
+          🎼 Your Sheet Music
+        </h3>
+        
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex gap-2 mr-2 border-r border-slate-300 pr-4">
+            <button 
+              onClick={togglePlay}
+              disabled={!isReady}
+              className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 text-white
+                ${isReady ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
+            >
+              {isPlaying ? "⏸ Pause" : "▶️ Play"}
+            </button>
+            <button 
+              onClick={stopPlay}
+              disabled={!isReady}
+              className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 text-white
+                ${isReady ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`}
+            >
+              ⏹ Stop
+            </button>
+          </div>
+
+          <button onClick={handlePrint} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2">
+            🖨️ Print
+          </button>
+          <button onClick={handleDownload} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+            ⬇️ Download XML
+          </button>
+        </div>
+      </div>
+
+      <div 
+        ref={containerRef} 
+        style={{ 
+          position: 'relative', 
+          width: '100%', 
+          maxWidth: '100%', 
+          minHeight: '400px', 
+          backgroundColor: 'white', 
+          overflow: 'visible', 
+          padding: '40px'
+        }} 
+      />
+    </div>
   );
 }

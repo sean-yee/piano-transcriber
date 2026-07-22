@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import SheetMusic from './SheetMusic.jsx';
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
@@ -221,7 +222,7 @@ export default function App() {
 
         {/* Sheet Music Display */}
         {xmlData && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 pt-4 pb-20">
+          <div className="animate-in fade-in duration-700 pt-4 pb-20">
             <SheetMusic xmlData={xmlData} />
           </div>
         )}
@@ -231,110 +232,3 @@ export default function App() {
   );
 }
 
-// --- SHEET MUSIC VIEWER COMPONENT ---
-function SheetMusic({ xmlData }) {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!xmlData || !containerRef.current) return;
-
-    const renderSheetMusic = () => {
-      if (!window.opensheetmusicdisplay) return;
-      containerRef.current.innerHTML = '';
-
-      const osmd = new window.opensheetmusicdisplay.OpenSheetMusicDisplay(containerRef.current, {
-        autoResize: true,
-        backend: "svg", 
-        drawTitle: false, 
-      });
-
-      osmd.load(xmlData).then(() => {
-        osmd.zoom = 0.9; 
-        osmd.render();
-      }).catch((error) => {
-        console.error("Oops! Something went wrong drawing the sheet music:", error);
-      });
-    };
-
-    if (window.opensheetmusicdisplay) {
-      renderSheetMusic();
-    } else {
-      const scriptId = 'osmd-script';
-      let script = document.getElementById(scriptId);
-
-      if (!script) {
-        script = document.createElement('script');
-        script.id = scriptId;
-        script.src = "https://unpkg.com/opensheetmusicdisplay@1.8.8/build/opensheetmusicdisplay.min.js";
-        script.async = true;
-        document.body.appendChild(script);
-      }
-
-      script.addEventListener('load', renderSheetMusic);
-
-      return () => {
-        script.removeEventListener('load', renderSheetMusic);
-      };
-    }
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-      }
-    };
-  }, [xmlData]);
-
-  const handleDownload = () => {
-    if (!xmlData) return;
-    const blob = new Blob([xmlData], { type: 'application/vnd.recordare.musicxml+xml' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = "AI_Transcription.musicxml"; 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handlePrint = () => {
-    window.print(); 
-  };
-
-  return (
-    <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden">
-      <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4">
-        <h3 className="font-extrabold text-slate-800 text-xl flex items-center gap-2">
-          🎼 Your Sheet Music
-        </h3>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <button 
-            onClick={handlePrint}
-            className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2"
-          >
-            🖨️ Print
-          </button>
-          <button 
-            onClick={handleDownload}
-            className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
-          >
-            ⬇️ Download XML
-          </button>
-        </div>
-      </div>
-
-      <div 
-        ref={containerRef} 
-        style={{ 
-          width: '100%', 
-          maxWidth: '100%', 
-          minHeight: '400px', 
-          backgroundColor: 'white', 
-          overflowX: 'auto', 
-          overflowY: 'hidden',
-          padding: '40px'
-        }} 
-      />
-    </div>
-  );
-}

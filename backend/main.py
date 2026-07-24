@@ -47,7 +47,8 @@ async def transcribe_audio(
     key_signature: str = Form("auto"),
     volume_threshold: int = Form(30),
     polyphony_limit: int = Form(6),
-    smoothness: int = Form(50)
+    smoothness: int = Form(50),
+    hand_bias: int = Form(0)
 ):
     temp_file_path = f"temp_{file.filename}"
     base_name, _ = os.path.splitext(temp_file_path)
@@ -172,6 +173,11 @@ async def transcribe_audio(
             max_p = max(active_pitches)
             min_p = min(active_pitches)
             
+            # ✨ Calculate the ML threshold based on the slider!
+            # Default is 0.5 (50%). A bias of +50 lowers the threshold to 0.0 (Right Hand gets everything).
+            # A bias of -50 raises the threshold to 1.0 (Left Hand gets everything).
+            rh_threshold = 0.5 - (hand_bias / 100.0)
+
             if isinstance(el, note.Note):
                 if c_count == 1 and el.pitch.midi > 48:
                     flat_right.insert(el.offset, copy.deepcopy(el))
@@ -180,7 +186,11 @@ async def transcribe_audio(
                     dist_low = el.pitch.midi - min_p
                     features = np.array([[el.pitch.midi, float(el.quarterLength), c_count, dist_high, dist_low]])
                     
-                    if hand_classifier.predict(features)[0] == 1:
+                    # ✨ USE PREDICT_PROBA INSTEAD OF PREDICT
+                    probs = hand_classifier.predict_proba(features)[0]
+                    rh_confidence = probs[1] # Probability it is a Right Hand note
+                    
+                    if rh_confidence >= rh_threshold:
                         flat_right.insert(el.offset, copy.deepcopy(el))
                     else:
                         flat_left.insert(el.offset, copy.deepcopy(el))
@@ -192,7 +202,12 @@ async def transcribe_audio(
                     dist_high = max_p - p.midi
                     dist_low = p.midi - min_p
                     features = np.array([[p.midi, float(el.quarterLength), c_count, dist_high, dist_low]])
-                    if hand_classifier.predict(features)[0] == 1:
+                    
+                    # ✨ USE PREDICT_PROBA HERE TOO
+                    probs = hand_classifier.predict_proba(features)[0]
+                    rh_confidence = probs[1]
+                    
+                    if rh_confidence >= rh_threshold:
                         r_pitches.append(p)
                     else:
                         l_pitches.append(p)
@@ -318,11 +333,18 @@ async def transcribe_audio(
                         current_note.quarterLength += gap
 
         # The function ends here, and we call it for both hands!
+
+        # The function ends here, and we call it for both hands!
         sequence_hand(flat_right)
         sequence_hand(flat_left)
 
-        sequence_hand(flat_right)
-        sequence_hand(flat_left)
+        # ✨ THE FIX: Force both hands to be the exact same length!
+        # Find the absolute final timestamp of the song
+        end_time = max(flat_right.highestTime, flat_left.highestTime)
+        
+        # Insert a dummy rest at the very end of both streams
+        flat_right.insert(end_time, note.Rest(quarterLength=1.0))
+        flat_left.insert(end_time, note.Rest(quarterLength=1.0))
 
         right_measured = flat_right.makeMeasures()
         left_measured = flat_left.makeMeasures()

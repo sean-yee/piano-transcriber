@@ -9,6 +9,7 @@ export default function App() {
   const [volumeThreshold, setVolumeThreshold] = useState(30);
   const [polyphonyLimit, setPolyphonyLimit] = useState(6);
   const [smoothness, setSmoothness] = useState(50);
+  const [handBias, setHandBias] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [xmlData, setXmlData] = useState(null);
   const [error, setError] = useState(null);
@@ -37,6 +38,7 @@ export default function App() {
     formData.append('volume_threshold', volumeThreshold);
     formData.append('polyphony_limit', polyphonyLimit);
     formData.append('smoothness', smoothness);
+    formData.append('hand_bias', handBias);
 
     try {
       // Ensure this points to your running FastAPI backend
@@ -232,6 +234,37 @@ export default function App() {
               
               <p className="text-sm text-slate-500 text-center">
                 Extends notes to fill awkward tiny gaps. High smoothness removes choppy rests and connects chords together beautifully.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2.9: Hand Split Bias (ML Override) */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-3 text-lg font-bold text-white">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-blue-400 text-sm">🧠</span>
+              Hand Split Bias (AI Override)
+            </label>
+            
+            <div className="bg-slate-800/30 border border-slate-700 p-6 rounded-2xl space-y-6">
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-slate-400">Force Left Hand (Bass)</span>
+                <span className={`font-bold px-3 py-1 rounded-full ${handBias < 0 ? 'bg-purple-900/30 text-purple-400' : handBias > 0 ? 'bg-orange-900/30 text-orange-400' : 'bg-slate-700/50 text-slate-300'}`}>
+                  {handBias == 0 ? "AI Default (50/50)" : handBias > 0 ? `+${handBias} Right Hand` : `${handBias} Left Hand`}
+                </span>
+                <span className="text-slate-400">Force Right Hand (Treble)</span>
+              </div>
+              
+              <input 
+                type="range" 
+                min="-50" 
+                max="50" 
+                value={handBias} 
+                onChange={(e) => setHandBias(e.target.value)}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              
+              <p className="text-sm text-slate-500 text-center">
+                If the AI is putting too many bass notes in the top staff, slide this to the left to force them down!
               </p>
             </div>
           </div>

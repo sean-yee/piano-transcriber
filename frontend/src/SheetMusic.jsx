@@ -6,9 +6,10 @@ export default function SheetMusic({ xmlData }) {
   const containerRef = useRef(null);
   const osmdRef = useRef(null);
   const audioPlayerRef = useRef(null);
-  
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [baseBpm, setBaseBpm] = useState(120);
 
   useEffect(() => {
     if (!xmlData || !containerRef.current) return;
@@ -37,6 +38,11 @@ export default function SheetMusic({ xmlData }) {
 
         // 2. THEN load the audio player so it hooks into the drawn music
         await audioPlayerRef.current.loadScore(osmdRef.current);
+
+        // ✨ NEW: Snatch the original BPM out of the audio engine and save it!
+        if (audioPlayerRef.current.playbackSettings && audioPlayerRef.current.playbackSettings.bpm) {
+          setBaseBpm(audioPlayerRef.current.playbackSettings.bpm);
+        }
 
         // 3. Show the cursor and force it to calculate its starting position
         osmdRef.current.cursor.show();
@@ -73,6 +79,34 @@ export default function SheetMusic({ xmlData }) {
       }
     };
   }, [xmlData]);
+
+  // ✨ THE BPM SLEDGEHAMMER: Modify the raw tempo!
+  const handleSpeedChange = (e) => {
+    const newSpeed = parseFloat(e.target.value);
+    setPlaybackSpeed(newSpeed); // Update the React UI
+    
+    if (audioPlayerRef.current) {
+      // Calculate the new target BPM (e.g., 82 BPM * 0.5 = 41 BPM)
+      const targetBpm = Math.round(baseBpm * newSpeed);
+      
+      // 1. Try the official setter function if it exists in your version
+      if (typeof audioPlayerRef.current.setBpm === 'function') {
+        audioPlayerRef.current.setBpm(targetBpm);
+      } 
+      // 2. Otherwise, brutally mutate the setting you found in the console log!
+      else if (audioPlayerRef.current.playbackSettings) {
+        audioPlayerRef.current.playbackSettings.bpm = targetBpm;
+      }
+      
+      // Force the audio scheduler to resync
+      if (isPlaying) {
+        audioPlayerRef.current.pause();
+        setTimeout(() => {
+          audioPlayerRef.current.play();
+        }, 50); 
+      }
+    }
+  };
 
   const togglePlay = () => {
     if (!audioPlayerRef.current || !isReady) return;
@@ -138,6 +172,24 @@ export default function SheetMusic({ xmlData }) {
             >
               ⏹ Stop
             </button>
+
+            {/* ✨ ADD THIS BACK IN: The Speed Dropdown! */}
+            <div className="flex items-center gap-2 ml-2 bg-white px-3 py-1.5 border border-slate-300 rounded-xl shadow-sm">
+              <span className="text-sm font-bold text-slate-500">🏎️ Speed:</span>
+              <select
+                value={playbackSpeed}
+                onChange={handleSpeedChange}
+                disabled={!isReady}
+                className="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer disabled:text-slate-400 disabled:cursor-not-allowed"
+              >
+                <option value="0.5">0.5x (Half)</option>
+                <option value="0.75">0.75x (Slow)</option>
+                <option value="1">1.0x (Normal)</option>
+                <option value="1.25">1.25x (Fast)</option>
+                <option value="1.5">1.5x (Faster)</option>
+                <option value="2">2.0x (Double)</option> {/* ✨ NEW: 2x Speed! */}
+              </select>
+            </div>
           </div>
 
           <button onClick={handlePrint} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2">

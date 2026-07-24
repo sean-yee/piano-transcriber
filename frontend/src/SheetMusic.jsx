@@ -114,6 +114,7 @@ export default function SheetMusic({ xmlData }) {
   return (
     <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden">
       
+      {/* TOOLBAR (Kept exactly as you built it!) */}
       <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4">
         <h3 className="font-extrabold text-slate-800 text-xl flex items-center gap-2">
           🎼 Your Sheet Music
@@ -148,18 +149,24 @@ export default function SheetMusic({ xmlData }) {
         </div>
       </div>
 
-      <div 
-        ref={containerRef} 
-        style={{ 
-          position: 'relative', 
-          width: '100%', 
-          maxWidth: '100%', 
-          minHeight: '400px', 
-          backgroundColor: 'white', 
-          overflow: 'visible', 
-          padding: '40px'
-        }} 
-      />
+      {/* ✨ THE FIX: A scrollable wrapper, a buffer div, and the OSMD container ✨ */}
+      <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar bg-white">
+        
+        {/* The Buffer Div: Enforces the whitespace and centers the music */}
+        <div className="min-w-[800px] max-w-7xl mx-auto px-8 md:px-16 py-10">
+          
+          <div 
+            ref={containerRef} 
+            style={{ 
+              position: 'relative', 
+              width: '100%', 
+              minHeight: '400px', 
+            }} 
+          />
+          
+        </div>
+        
+      </div>
     </div>
   );
 }

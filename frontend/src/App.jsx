@@ -299,17 +299,17 @@ export default function App() {
               )}
             </button>
           </div>
-
         </div>
-
-        {/* Sheet Music Display */}
-        {xmlData && (
-          <div className="animate-in fade-in duration-700 pt-4 pb-20">
-            <SheetMusic xmlData={xmlData} />
-          </div>
-        )}
-
       </div>
+
+      {/* Sheet Music Display (Now in its own WIDE container!) */}
+      {xmlData && (
+        <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-700 pt-10 pb-20 px-4 md:px-0">
+          <SheetMusic xmlData={xmlData} />
+        </div>
+      )}
+
+  
     </div>
   );
 }

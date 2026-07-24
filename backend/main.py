@@ -43,8 +43,11 @@ def home():
 @app.post("/transcribe")
 async def transcribe_audio(
     file: UploadFile = File(...), 
-    mode: str = Form("advanced"),
-    key_signature: str = Form("auto")
+    complexity: int = Form(2),
+    key_signature: str = Form("auto"),
+    volume_threshold: int = Form(30),
+    polyphony_limit: int = Form(6),
+    smoothness: int = Form(50)
 ):
     temp_file_path = f"temp_{file.filename}"
     base_name, _ = os.path.splitext(temp_file_path)
@@ -64,7 +67,7 @@ async def transcribe_audio(
         if detected_bpm == 0:
             detected_bpm = 120
         print(f"Detected Tempo: {detected_bpm} BPM")
-        print(f"Transcription Mode: {mode.upper()}")
+        print(f"Transcription Mode: {complexity}")
         print(f"Requested Key Signature: {key_signature.upper()}")
 
         transcriptor.transcribe(audio, temp_midi_path)
@@ -88,12 +91,47 @@ async def transcribe_audio(
         max_note_length = 8.0 
         elements_to_remove = []
         for el in flat_stream.notes:
-            if el.quarterLength < 0.125:
+            # Safely grab the volume (velocity) of the note or chord. Defaults to 64 if missing.
+            note_velocity = el.volume.velocity if (hasattr(el, 'volume') and el.volume.velocity is not None) else 64
+            
+            # ✨ NEW: If the note is too quiet OR too short, mark it for deletion!
+            if note_velocity < volume_threshold or el.quarterLength < 0.0625:
                 elements_to_remove.append(el)
             elif el.quarterLength > max_note_length:
                 el.quarterLength = max_note_length
+                
         for el in elements_to_remove:
             flat_stream.remove(el)
+
+        # ✨ THE CHORD SIMPLIFIER (Polyphony Filter) - V2
+        # We must look INSIDE the music21 Chord objects!
+        for el in list(flat_stream.notes):
+            if getattr(el, 'isChord', False) and len(el.pitches) > polyphony_limit:
+                
+                # Sort the pitches from lowest (bass) to highest (melody)
+                sorted_pitches = sorted(el.pitches, key=lambda p: p.midi)
+                
+                if polyphony_limit == 1:
+                    # If limit is 1, keep ONLY the highest melody note
+                    kept_pitches = [sorted_pitches[-1]]
+                else:
+                    # Keep the lowest bass note, and the highest melody notes, discard the middle overtones!
+                    kept_pitches = [sorted_pitches[0]] + sorted_pitches[-(polyphony_limit-1):]
+                
+                # Build a new simplified note/chord to replace the old giant one
+                if len(kept_pitches) == 1:
+                    new_el = note.Note(kept_pitches[0])
+                else:
+                    new_el = chord.Chord(kept_pitches)
+                    
+                new_el.quarterLength = el.quarterLength
+                new_el.offset = el.offset
+                if hasattr(el, 'volume') and el.volume.velocity is not None:
+                    new_el.volume.velocity = el.volume.velocity
+                
+                # Swap them out!
+                flat_stream.replace(el, new_el)
+
             
         flat_right = stream.Part()
         flat_left = stream.Part()
@@ -169,16 +207,33 @@ async def transcribe_audio(
                     flat_left.insert(el.offset, c_left)
 
         def sequence_hand(hand_stream):
-            if mode.lower() == "beginner":
+            # ✨ Complexity 4: EXACT (64th Notes - The limit of standard sheet music!)
+            if complexity == 4:
+                grid_resolution = 16.0  
+                collision_push = 0.0625  
+                standard_durations = [0.0625, 0.125, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
+                fallback_dur = 0.0625
+
+            # ✨ Complexity 1: BEGINNER (8th Notes)
+            elif complexity == 1:
                 grid_resolution = 2.0  
                 collision_push = 0.5   
                 standard_durations = [0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]
                 fallback_dur = 0.5
-            else:
+                
+            # ✨ Complexity 2: INTERMEDIATE (16th Notes)
+            elif complexity == 2:
                 grid_resolution = 4.0  
                 collision_push = 0.25  
                 standard_durations = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]
                 fallback_dur = 0.25
+                
+            # ✨ Complexity 3: ADVANCED (32nd Notes)
+            else:
+                grid_resolution = 8.0  
+                collision_push = 0.125  
+                standard_durations = [0.125, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
+                fallback_dur = 0.125
 
             offset_groups = {}
             raw_notes = list(hand_stream.notes)
@@ -244,6 +299,27 @@ async def transcribe_audio(
                 
                 new_el.quarterLength = final_dur
                 hand_stream.insert(current_offset, new_el)
+
+            # ✨ THE NEW SMOOTHNESS FILTER IS NOW SAFELY INSIDE THE FUNCTION!
+            if smoothness > 0:
+                max_gap_to_fill = (smoothness / 100.0) * 0.5 
+                
+                final_notes = list(hand_stream.notes)
+                final_notes.sort(key=lambda x: x.offset)
+                
+                for i in range(len(final_notes) - 1):
+                    current_note = final_notes[i]
+                    next_note = final_notes[i+1]
+                    
+                    current_end = current_note.offset + current_note.quarterLength
+                    gap = next_note.offset - current_end
+                    
+                    if 0 < gap <= max_gap_to_fill:
+                        current_note.quarterLength += gap
+
+        # The function ends here, and we call it for both hands!
+        sequence_hand(flat_right)
+        sequence_hand(flat_left)
 
         sequence_hand(flat_right)
         sequence_hand(flat_left)

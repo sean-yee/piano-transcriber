@@ -4,8 +4,11 @@ import SheetMusic from './SheetMusic.jsx';
 // --- MAIN APP COMPONENT ---
 export default function App() {
   const [file, setFile] = useState(null);
-  const [mode, setMode] = useState('advanced');
+  const [complexity, setComplexity] = useState(2); // 1=Beginner, 2=Intermediate, 3=Advanced, 4=Exact
   const [keySignature, setKeySignature] = useState('auto');
+  const [volumeThreshold, setVolumeThreshold] = useState(30);
+  const [polyphonyLimit, setPolyphonyLimit] = useState(6);
+  const [smoothness, setSmoothness] = useState(50);
   const [isLoading, setIsLoading] = useState(false);
   const [xmlData, setXmlData] = useState(null);
   const [error, setError] = useState(null);
@@ -29,8 +32,11 @@ export default function App() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('mode', mode);
+    formData.append('complexity', complexity);
     formData.append('key_signature', keySignature);
+    formData.append('volume_threshold', volumeThreshold);
+    formData.append('polyphony_limit', polyphonyLimit);
+    formData.append('smoothness', smoothness);
 
     try {
       // Ensure this points to your running FastAPI backend
@@ -97,60 +103,136 @@ export default function App() {
             </div>
           </div>
 
-          {/* Step 2: Complexity */}
+          {/* Step 2: Complexity (Quantization) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-blue-400 text-sm">2</span>
-              Select Complexity
+              Sheet Music Complexity (Grid Snap)
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Beginner Card */}
-              <div 
-                onClick={() => setMode('beginner')}
-                className={`relative flex cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
-                  mode === 'beginner' 
-                    ? 'bg-blue-900/20 border-blue-500' 
-                    : 'border-slate-700 bg-transparent hover:border-slate-500'
-                }`}
-              >
-                <div className="flex w-full items-center justify-between">
-                  <div>
-                    <p className={`font-bold text-lg ${mode === 'beginner' ? 'text-blue-400' : 'text-white'}`}>Beginner</p>
-                    <p className="text-sm text-slate-400 mt-1">Filters out fast 16th notes for easy reading.</p>
-                  </div>
-                  {mode === 'beginner' && (
-                    <div className="w-6 h-6 rounded bg-[#5bb974] flex items-center justify-center shadow-sm flex-shrink-0 ml-3">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
+            
+            <div className="bg-slate-800/30 border border-slate-700 p-6 rounded-2xl space-y-8">
+              <input 
+                type="range" 
+                min="1" 
+                max="4" 
+                step="1"
+                value={complexity} 
+                onChange={(e) => setComplexity(parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              
+              {/* Dynamic Labels based on slider position */}
+              <div className="flex justify-between text-center">
+                <div className={`flex flex-col w-1/4 ${complexity === 1 ? 'text-blue-400 font-bold scale-110 transition-all' : 'text-slate-500'}`}>
+                  <span>Beginner</span>
+                  <span className="text-xs mt-1">8th Notes</span>
+                </div>
+                <div className={`flex flex-col w-1/4 ${complexity === 2 ? 'text-blue-400 font-bold scale-110 transition-all' : 'text-slate-500'}`}>
+                  <span>Intermediate</span>
+                  <span className="text-xs mt-1">16th Notes</span>
+                </div>
+                <div className={`flex flex-col w-1/4 ${complexity === 3 ? 'text-blue-400 font-bold scale-110 transition-all' : 'text-slate-500'}`}>
+                  <span>Advanced</span>
+                  <span className="text-xs mt-1">32nd Notes</span>
+                </div>
+                <div className={`flex flex-col w-1/4 ${complexity === 4 ? 'text-red-400 font-bold scale-110 transition-all' : 'text-slate-500'}`}>
+                  <span>Exact (Raw)</span>
+                  <span className="text-xs mt-1">No Snapping</span>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Advanced Card */}
-              <div 
-                onClick={() => setMode('advanced')}
-                className={`relative flex cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
-                  mode === 'advanced' 
-                    ? 'bg-blue-900/20 border-blue-500' 
-                    : 'border-slate-700 bg-transparent hover:border-slate-500'
-                }`}
-              >
-                <div className="flex w-full items-center justify-between">
-                  <div>
-                    <p className={`font-bold text-lg ${mode === 'advanced' ? 'text-blue-400' : 'text-white'}`}>Advanced</p>
-                    <p className="text-sm text-slate-400 mt-1">Exact, intricate rhythms and syncopation.</p>
-                  </div>
-                  {mode === 'advanced' && (
-                    <div className="w-6 h-6 rounded bg-[#5bb974] flex items-center justify-center shadow-sm flex-shrink-0 ml-3">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+          {/* Step 2.5: Volume Sensitivity (Ghost Note Filter) */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-3 text-lg font-bold text-white">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-blue-400 text-sm">🎚️</span>
+              Ghost Note Filter (Volume Sensitivity)
+            </label>
+            
+            <div className="bg-slate-800/30 border border-slate-700 p-6 rounded-2xl space-y-6">
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-slate-400">Pick up every whisper</span>
+                <span className="text-blue-400 font-bold bg-blue-900/30 px-3 py-1 rounded-full">
+                  Threshold: {volumeThreshold}
+                </span>
+                <span className="text-slate-400">Loud notes only</span>
               </div>
+              
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={volumeThreshold} 
+                onChange={(e) => setVolumeThreshold(e.target.value)}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              
+              <p className="text-sm text-slate-500 text-center">
+                Filters out accidental key touches and microphone echoes. If your sheet music looks too cluttered, turn this up!
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2.75: Polyphony Limit (Chord Simplifier) */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-3 text-lg font-bold text-white">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-blue-400 text-sm">🎹</span>
+              Chord Simplifier (Max Notes at Once)
+            </label>
+            
+            <div className="bg-slate-800/30 border border-slate-700 p-6 rounded-2xl space-y-6">
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-slate-400">Single Notes</span>
+                <span className="text-blue-400 font-bold bg-blue-900/30 px-3 py-1 rounded-full">
+                  Max: {polyphonyLimit} notes
+                </span>
+                <span className="text-slate-400">10-Note Chords</span>
+              </div>
+              
+              <input 
+                type="range" 
+                min="1" 
+                max="10" 
+                value={polyphonyLimit} 
+                onChange={(e) => setPolyphonyLimit(e.target.value)}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              
+              <p className="text-sm text-slate-500 text-center">
+                Prevents the AI from writing impossible 7-note chords by only keeping the loudest notes being played at any given moment.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2.8: Smoothness (Legato/Rest Filter) */}
+          <div className="space-y-4">
+            <label className="flex items-center gap-3 text-lg font-bold text-white">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-slate-800 text-blue-400 text-sm">🌊</span>
+              Smoothness (Fill Tiny Rests)
+            </label>
+            
+            <div className="bg-slate-800/30 border border-slate-700 p-6 rounded-2xl space-y-6">
+              <div className="flex justify-between items-center text-sm font-medium">
+                <span className="text-slate-400">Choppy (Exact)</span>
+                <span className="text-blue-400 font-bold bg-blue-900/30 px-3 py-1 rounded-full">
+                  Smoothness: {smoothness}%
+                </span>
+                <span className="text-slate-400">Connected (Legato)</span>
+              </div>
+              
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={smoothness} 
+                onChange={(e) => setSmoothness(e.target.value)}
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              
+              <p className="text-sm text-slate-500 text-center">
+                Extends notes to fill awkward tiny gaps. High smoothness removes choppy rests and connects chords together beautifully.
+              </p>
             </div>
           </div>
 

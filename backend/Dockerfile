@@ -1,34 +1,25 @@
-# 1. Start with a lightweight Python environment
-FROM python:3.9-slim
+# 1. Use a lightweight Python base image
+FROM python:3.10-slim
 
-# --- NEW: Install essential OS-level audio and ML libraries! ---
-# (The slim image is missing these, which causes basic-pitch and tensorflow to crash)
-RUN apt-get update && apt-get install -y \
-    libsndfile1 \
-    ffmpeg \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# 2. Install FFmpeg (CRITICAL for librosa to process mp3/wav files)
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# 2. Hugging Face Security Requirement: Create a non-root user
-# (They don't allow apps to run with master admin privileges for security)
-RUN useradd -m -u 1000 user
-USER user
+# 3. Set the working directory inside the container
+WORKDIR /app
 
-# 3. Set up the home directory and working folder
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
-
-WORKDIR $HOME/app
-
-# 4. Copy your requirements file FIRST and install the libraries
-COPY --chown=user requirements.txt .
-# --- NEW: Force downgrade NumPy to fix the TFLite Array API crash ---
-RUN pip install --no-cache-dir "numpy<2" 
+# 4. Copy the requirements file and install the Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copy your actual code and data into the container
-COPY --chown=user . .
+# 5. Copy the rest of your backend code and the ML model into the container
+COPY main.py .
+COPY hand_classifier.pkl .
 
-# 6. Start the FastAPI server!
-# Hugging Face explicitly requires apps to run on port 7860
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# 6. Expose the port FastAPI runs on
+EXPOSE 8000
+
+# 7. The command to spin up the server when the container starts
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

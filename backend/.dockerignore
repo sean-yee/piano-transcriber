@@ -1,0 +1,8 @@
+__pycache__
+*.pyc
+.git
+.env
+midi_data/
+massive_training_data.csv
+build_dataset.py
+train_model.py

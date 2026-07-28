@@ -1,7 +1,10 @@
-fastapi
-uvicorn
-python-multipart
-basic-pitch
-music21
-scikit-learn
-pandas
+fastapi==0.138.0
+uvicorn==0.49.0
+python-multipart==0.0.32
+numpy==1.26.4
+pandas==3.0.3
+scikit-learn==1.9.0
+joblib==1.5.3
+librosa==0.11.0
+piano_transcription_inference==0.0.6
+music21==10.5.0

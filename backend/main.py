@@ -15,10 +15,17 @@ from sklearn.ensemble import RandomForestClassifier
 # Create the FastAPI server instance
 app = FastAPI()
 
+origins = [
+    "https://main.d3k4cqc4hd4mc0.amplifyapp.com", # Your temporary Amplify URL
+    "https://pianopilotai.com",                   # Your future custom domain
+    "http://localhost:5173",                      # Local Vite testing (just in case)
+    "http://localhost:3000"                       # Local React testing
+]
+
 # Configure CORS so your React frontend (running on a different port) is allowed to talk to this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

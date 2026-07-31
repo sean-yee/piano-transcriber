@@ -58,7 +58,7 @@ export default function App() {
     try {
       // THE API CALL: Send the payload to your FastAPI Python server
       // Make sure localhost:8000 matches exactly where your Python terminal says it is running!
-      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.pianopilotai.com';
 
       const response = await fetch(`${API_BASE_URL}/transcribe`, {
         method: 'POST',

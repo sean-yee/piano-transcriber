@@ -4,12 +4,14 @@ import copy
 import numpy as np
 import joblib
 import traceback  
-import librosa    
+import librosa
+import pretty_midi
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from piano_transcription_inference import PianoTranscription, sample_rate
 from music21 import converter, stream, clef, instrument, note, chord, tempo, meter, key as m21_key
 from sklearn.ensemble import RandomForestClassifier
+from pydub import AudioSegment
 
 # --- APP INITIALIZATION ---
 # Create the FastAPI server instance
@@ -94,7 +96,54 @@ async def transcribe_audio(
         print(f"Requested Key Signature: {key_signature.upper()}")
 
         # Run the ByteDance AI to convert the audio array into a raw MIDI file
-        transcriptor.transcribe(audio, temp_midi_path)
+        # --- THE CHUNKING ENGINE ---
+        print("Slicing audio into 30-second chunks to save RAM...")
+        
+        audio_segment = AudioSegment.from_file(temp_file_path)
+        chunk_length_ms = 30000  # 30 seconds
+        
+        chunks = [audio_segment[i:i + chunk_length_ms] for i in range(0, len(audio_segment), chunk_length_ms)]
+        midi_paths = []
+        
+        for i, chunk in enumerate(chunks):
+            print(f"Transcribing chunk {i+1} of {len(chunks)}...")
+            
+            chunk_wav_path = f"{base_name}_chunk_{i}.wav"
+            chunk_mid_path = f"{base_name}_chunk_{i}.mid"
+            
+            # Export chunk, load it into an array, and transcribe it
+            chunk.export(chunk_wav_path, format="wav")
+            chunk_audio_array, _ = librosa.load(chunk_wav_path, sr=sample_rate, mono=True)
+            transcriptor.transcribe(chunk_audio_array, chunk_mid_path)
+            
+            midi_paths.append(chunk_mid_path)
+            os.remove(chunk_wav_path) # Clean up RAM/disk
+            
+        # --- STITCHING THE MIDI ---
+        print("Stitching MIDI chunks back together...")
+        merged_midi = pretty_midi.PrettyMIDI()
+        piano_program = pretty_midi.instrument_name_to_program('Acoustic Grand Piano')
+        merged_piano = pretty_midi.Instrument(program=piano_program)
+        
+        for i, m_path in enumerate(midi_paths):
+            offset_sec = i * (chunk_length_ms / 1000.0) 
+            pm = pretty_midi.PrettyMIDI(m_path)
+            
+            for inst in pm.instruments:
+                for n in inst.notes:
+                    n.start += offset_sec
+                    n.end += offset_sec
+                    merged_piano.notes.append(n)
+                for cc in inst.control_changes:
+                    cc.time += offset_sec
+                    merged_piano.control_changes.append(cc)
+                    
+            os.remove(m_path) # Clean up temporary midi chunks
+            
+        # Save the final masterpiece using the variable name your music21 code expects
+        merged_midi.instruments.append(merged_piano)
+        merged_midi.write(temp_midi_path) 
+        print(f"Successfully generated full MIDI file: {temp_midi_path}")
         
         # --- MUSIC21 PARSING ---
         # Load the raw MIDI file into music21, which allows us to manipulate the notes programmatically

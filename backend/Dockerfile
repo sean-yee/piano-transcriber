@@ -1,7 +1,7 @@
 # 1. Use a lightweight Python base image
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y wget
+RUN apt-get update && apt-get install -y wget ffmpeg
 
 # 2. Install FFmpeg (CRITICAL for librosa to process mp3/wav files)
 RUN apt-get update && \

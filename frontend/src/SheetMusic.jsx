@@ -166,11 +166,11 @@ export default function SheetMusic({ xmlData }) {
 
   // --- COMPONENT UI (JSX) ---
   return (
-    <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden">
+    <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden print:shadow-none print:border-none print:rounded-none">
       
       {/* 1. THE TOOLBAR */}
       {/* Contains the title and all action buttons (Play, Stop, Speed, Download) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4 print:hidden">
         <h3 className="font-extrabold text-slate-800 text-xl flex items-center gap-2">
           🎼 Your Sheet Music
         </h3>
@@ -225,8 +225,8 @@ export default function SheetMusic({ xmlData }) {
       {/* This outer wrapper handles horizontal scrolling if OSMD draws a massive 1200px wide line of music.
         The inner buffer div enforces padding/whitespace and centers the music on large screens. 
       */}
-      <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar bg-white">
-        <div className="min-w-[800px] max-w-7xl mx-auto px-8 md:px-16 py-10">
+      <div className="w-full overflow-x-auto overflow-y-hidden custom-scrollbar bg-white print:overflow-visible">
+        <div className="min-w-[800px] max-w-7xl mx-auto px-8 md:px-16 py-10 print:p-0 print:m-0 print:min-w-0">
           
           {/* This is the crucial empty container! We pass its reference (containerRef) 
             to OSMD on line 28, and OSMD physically injects the SVG tags directly into this space.

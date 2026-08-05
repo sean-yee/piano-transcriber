@@ -106,15 +106,16 @@ export default function App() {
 
   // --- COMPONENT UI (JSX) ---
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-slate-200 p-6 md:p-12 font-sans selection:bg-blue-500 selection:text-white">
-      <div className="max-w-3xl mx-auto space-y-10">
+    <div className="min-h-screen bg-[#0B0F19] text-slate-200 p-6 md:p-12 font-sans selection:bg-blue-500 selection:text-white print:bg-white print:text-black print:p-0">
+      
+      <div className="max-w-3xl mx-auto space-y-10 print:hidden">
         
         {/* --- HEADER SECTION --- */}
         <div className="text-center space-y-4 pt-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             <span className="text-white">🎹</span> 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-              Pianopilot
+              pianopilot
             </span>
           </h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">
@@ -382,7 +383,7 @@ export default function App() {
       {/* --- RENDERED SHEET MUSIC SECTION --- */}
       {/* This section ONLY exists in the DOM if xmlData is populated by a successful backend response */}
       {xmlData && (
-        <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-700 pt-10 pb-20 px-4 md:px-0">
+        <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-700 pt-10 pb-20 px-4 md:px-0 print:p-0 print:pt-0">
           {/* We pass the raw XML string directly into our custom OSMD component as a prop */}
           <SheetMusic xmlData={xmlData} />
         </div>

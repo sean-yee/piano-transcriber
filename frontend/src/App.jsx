@@ -114,7 +114,7 @@ export default function App() {
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             <span className="text-white">🎹</span> 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-              pianopilot
+              Pianopilot
             </span>
           </h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">

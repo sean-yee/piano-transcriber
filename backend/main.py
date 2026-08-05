@@ -12,6 +12,7 @@ from piano_transcription_inference import PianoTranscription, sample_rate
 from music21 import converter, stream, clef, instrument, note, chord, tempo, meter, key as m21_key
 from sklearn.ensemble import RandomForestClassifier
 from pydub import AudioSegment
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # --- APP INITIALIZATION ---
 # Create the FastAPI server instance
@@ -96,28 +97,45 @@ async def transcribe_audio(
         print(f"Requested Key Signature: {key_signature.upper()}")
 
         # Run the ByteDance AI to convert the audio array into a raw MIDI file
-        # --- THE CHUNKING ENGINE ---
+        # --- THE CHUNKING ENGINE (MULTITHREADED) ---
         print("Slicing audio into 30-second chunks to save RAM...")
         
         audio_segment = AudioSegment.from_file(temp_file_path)
         chunk_length_ms = 30000  # 30 seconds
         
         chunks = [audio_segment[i:i + chunk_length_ms] for i in range(0, len(audio_segment), chunk_length_ms)]
-        midi_paths = []
         
-        for i, chunk in enumerate(chunks):
-            print(f"Transcribing chunk {i+1} of {len(chunks)}...")
+        # We must keep track of the original order so the sheet music doesn't get scrambled!
+        midi_paths = [None] * len(chunks)
+        
+        # This is the worker function that each CPU core will run independently
+        def process_chunk(index, chunk_data):
+            c_wav = f"{base_name}_chunk_{index}.wav"
+            c_mid = f"{base_name}_chunk_{index}.mid"
             
-            chunk_wav_path = f"{base_name}_chunk_{i}.wav"
-            chunk_mid_path = f"{base_name}_chunk_{i}.mid"
+            chunk_data.export(c_wav, format="wav")
+            c_array, _ = librosa.load(c_wav, sr=sample_rate, mono=True)
             
-            # Export chunk, load it into an array, and transcribe it
-            chunk.export(chunk_wav_path, format="wav")
-            chunk_audio_array, _ = librosa.load(chunk_wav_path, sr=sample_rate, mono=True)
-            transcriptor.transcribe(chunk_audio_array, chunk_mid_path)
+            # The heavy math happens here
+            transcriptor.transcribe(c_array, c_mid)
+            os.remove(c_wav) # Clean up RAM/disk immediately
             
-            midi_paths.append(chunk_mid_path)
-            os.remove(chunk_wav_path) # Clean up RAM/disk
+            return index, c_mid
+
+        print("Firing up 2 CPU cores for parallel processing...")
+        # Max workers = 2 because your AWS server has 2 vCPUs
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            # Submit all the chunks to the workers
+            future_to_chunk = {executor.submit(process_chunk, i, chunk): i for i, chunk in enumerate(chunks)}
+            
+            for future in as_completed(future_to_chunk):
+                try:
+                    idx, completed_mid_path = future.result()
+                    midi_paths[idx] = completed_mid_path # Slot it back into the correct chronological order
+                    print(f"✅ Finished transcribing chunk {idx + 1} of {len(chunks)}")
+                except Exception as exc:
+                    print(f"❌ Chunk generated an exception: {exc}")
+                    raise exc
             
         # --- STITCHING THE MIDI ---
         print("Stitching MIDI chunks back together...")

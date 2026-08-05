@@ -27,7 +27,19 @@ export default function App() {
   // Triggered when the user clicks the upload box and selects an audio file
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]); // Save the file into React state
+      const selectedFile = e.target.files[0];
+      
+      // THE 2.5 MB HARD LIMIT SHIELD 
+      // 2.5 Megabytes = 2.5 * 1024 * 1024 bytes
+      const MAX_FILE_SIZE = 2621440; 
+      
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        alert("This file is a bit too large! To keep our AI running smoothly, please upload a song under 2.5MB.");
+        e.target.value = null; // Clears the input so they can pick a new file
+        return; // Stops the function immediately
+      }
+
+      setFile(selectedFile); // Save the file into React state
       setError(null); // Clear any previous errors since we have a new file
     }
   };
@@ -102,7 +114,7 @@ export default function App() {
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             <span className="text-white">🎹</span> 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-              AI Piano Transcriber
+              pianopilot
             </span>
           </h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">

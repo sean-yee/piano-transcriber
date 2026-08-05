@@ -158,33 +158,18 @@ export default function SheetMusic({ xmlData }) {
 
   // --- EXPORT CONTROLS ---
 
-  // Converts the raw XML string in our state into a physical .musicxml file the user can download
-  const handleDownload = () => {
-    if (!xmlData) return;
-    // Create a temporary "Blob" (binary large object) to hold the file data in the browser's memory
-    const blob = new Blob([xmlData], { type: 'application/vnd.recordare.musicxml+xml' });
-    const url = URL.createObjectURL(blob);
-    // Create an invisible HTML link, click it automatically, and destroy it
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = "AI_Transcription.musicxml"; 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url); // Free up browser memory
-  };
-
-  // Triggers the browser's native print dialog
-  const handlePrint = () => {
+  // Triggers the browser's native print dialog, allowing users to "Save as PDF"
+  const handleDownloadPDF = () => {
     window.print(); 
   };
+
 
   // --- COMPONENT UI (JSX) ---
   return (
     <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden">
       
       {/* 1. THE TOOLBAR */}
-      {/* Contains the title and all action buttons (Play, Stop, Speed, Print, Download) */}
+      {/* Contains the title and all action buttons (Play, Stop, Speed, Download) */}
       <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4">
         <h3 className="font-extrabold text-slate-800 text-xl flex items-center gap-2">
           🎼 Your Sheet Music
@@ -230,11 +215,8 @@ export default function SheetMusic({ xmlData }) {
           </div>
 
           {/* Export Controls */}
-          <button onClick={handlePrint} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2">
-            🖨️ Print
-          </button>
-          <button onClick={handleDownload} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2">
-            ⬇️ Download XML
+          <button onClick={handleDownloadPDF} className="flex-1 sm:flex-none px-5 py-2 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2">
+            ⬇️ Download PDF
           </button>
         </div>
       </div>

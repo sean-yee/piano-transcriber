@@ -168,8 +168,8 @@ export default function App() {
                   <span className="text-xs mt-1">32nd Notes</span>
                 </div>
                 <div className={`flex flex-col w-1/4 ${complexity === 4 ? 'text-red-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Exact (Raw)</span>
-                  <span className="text-xs mt-1">No Snapping</span>
+                  <span>Exact</span>
+                  <span className="text-xs mt-1">64th Notes</span>
                 </div>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function App() {
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🎚️</span>
-              Ghost Note Filter (Volume Sensitivity)
+              Volume Sensitivity
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
@@ -201,7 +201,7 @@ export default function App() {
               />
               
               <p className="text-sm text-neutral-500 text-center">
-                Filters out accidental key touches and microphone echoes. If your sheet music looks too cluttered, turn this up!
+                Filters out false reads and echoes. If your sheet music looks like it has extra notes, turn this up! If it looks like its missing notes, turn it down!
               </p>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function App() {
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🧠</span>
-              Hand Split Bias (AI Override)
+              Hand Split Bias
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
@@ -294,7 +294,7 @@ export default function App() {
               />
               
               <p className="text-sm text-neutral-500 text-center">
-                If the AI is putting too many bass notes in the top staff, slide this to the left to force them down!
+                Force more notes to the left hand or right hand if one hand seems too cluttered.
               </p>
             </div>
           </div>
@@ -347,7 +347,7 @@ export default function App() {
               className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
                 isLoading || !file 
                   ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
-                  : 'bg-gradient-to-r from-teal-600 to-yellow-500 hover:from-teal-400 hover:to-yellow-400 hover:shadow-teal-700/25 transform hover:-translate-y-1'
+                  : 'bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-400 hover:to-teal-600 hover:shadow-teal-700/25 transform hover:-translate-y-1'
               }`}
             >
               {isLoading ? (

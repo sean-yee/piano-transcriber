@@ -96,9 +96,16 @@ export default function App() {
         {/* --- HEADER SECTION --- */}
         <div className="text-center space-y-4 pt-4">
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
-            <span className="text-white">🎹</span> 
+            
+            {/* The new logo replacing the piano emoji */}
+            <img 
+              src="/logo.png" 
+              alt="Pianopilot Logo" 
+              className="h-16 md:h-24 w-auto object-contain pb-2" 
+            />
+            
             {/* The teal gradient text, massively sized up */}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600 pb-2">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-teal-700 pb-2">
               Pianopilot
             </span>
           </h1>
@@ -106,7 +113,7 @@ export default function App() {
             Upload your piano audio and instantly generate clean, playable sheet music.
           </p>
         </div>
-
+        
         {/* --- MAIN CONTROL PANEL (THE SLIDERS) --- */}
         <div className="bg-neutral-900 p-8 md:p-10 rounded-[2rem] shadow-2xl border border-neutral-800 space-y-10">
           

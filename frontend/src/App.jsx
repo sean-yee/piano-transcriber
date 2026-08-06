@@ -99,7 +99,7 @@ export default function App() {
             
             {/* The new logo replacing the piano emoji */}
             <img 
-              src="/favicon.svg" 
+              src="/piano.png" 
               alt="Pianopilot Logo" 
               className="h-16 md:h-24 w-auto object-contain pb-2" 
             />

@@ -89,7 +89,7 @@ export default function App() {
   // --- COMPONENT UI (JSX) ---
   return (
     // Updated background to neutral-950 and selection color to amber
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-12 font-sans selection:bg-amber-500 selection:text-neutral-900 print:bg-white print:text-black print:p-0">
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-12 font-sans selection:bg-teal-700 selection:text-neutral-900 print:bg-white print:text-black print:p-0">
       
       <div className="max-w-3xl mx-auto space-y-10 print:hidden">
         
@@ -99,12 +99,12 @@ export default function App() {
           <img 
             src="/logo.png" 
             alt="Pianopilot Logo" 
-            className="h-28 w-auto drop-shadow-2xl mb-2 object-contain"
+            className="h-50 w-auto drop-shadow-2xl mb-2 object-contain"
           />
           
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             {/* Updated gradient to match the gold keys */}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-teal-600">
               pianopilot
             </span>
           </h1>
@@ -120,7 +120,7 @@ export default function App() {
           {/* STEP 1: File Upload */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">1</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">1</span>
               Upload Audio (.mp3, .wav)
             </label>
             <div className="w-full">
@@ -128,7 +128,7 @@ export default function App() {
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
                   <span className="text-4xl mb-3 grayscale opacity-80 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🎵</span>
                   <p className="text-sm font-medium text-neutral-300">
-                    {file ? <span className="text-amber-400 font-bold">{file.name}</span> : "Click to upload or drag and drop"}
+                    {file ? <span className="text-teal-600 font-bold">{file.name}</span> : "Click to upload or drag and drop"}
                   </p>
                 </div>
                 <input type="file" className="hidden" accept="audio/*" onChange={handleFileChange} />
@@ -139,7 +139,7 @@ export default function App() {
           {/* STEP 2: Complexity (Quantization) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">2</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">2</span>
               Sheet Music Complexity (Grid Snap)
             </label>
             
@@ -151,19 +151,19 @@ export default function App() {
                 step="1"
                 value={complexity} 
                 onChange={(e) => setComplexity(parseInt(e.target.value))}
-                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
               <div className="flex justify-between text-center">
-                <div className={`flex flex-col w-1/4 ${complexity === 1 ? 'text-amber-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
+                <div className={`flex flex-col w-1/4 ${complexity === 1 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
                   <span>Beginner</span>
                   <span className="text-xs mt-1">8th Notes</span>
                 </div>
-                <div className={`flex flex-col w-1/4 ${complexity === 2 ? 'text-amber-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
+                <div className={`flex flex-col w-1/4 ${complexity === 2 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
                   <span>Intermediate</span>
                   <span className="text-xs mt-1">16th Notes</span>
                 </div>
-                <div className={`flex flex-col w-1/4 ${complexity === 3 ? 'text-amber-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
+                <div className={`flex flex-col w-1/4 ${complexity === 3 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
                   <span>Advanced</span>
                   <span className="text-xs mt-1">32nd Notes</span>
                 </div>
@@ -178,14 +178,14 @@ export default function App() {
           {/* STEP 2.5: Volume Sensitivity (Ghost Note Filter) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">🎚️</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🎚️</span>
               Ghost Note Filter (Volume Sensitivity)
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
               <div className="flex justify-between items-center text-sm font-medium">
                 <span className="text-neutral-400">Pick up every whisper</span>
-                <span className="text-amber-400 font-bold bg-amber-900/20 px-3 py-1 rounded-full border border-amber-900/50">
+                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
                   Threshold: {volumeThreshold}
                 </span>
                 <span className="text-neutral-400">Loud notes only</span>
@@ -197,7 +197,7 @@ export default function App() {
                 max="100" 
                 value={volumeThreshold} 
                 onChange={(e) => setVolumeThreshold(e.target.value)}
-                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
               <p className="text-sm text-neutral-500 text-center">
@@ -209,14 +209,14 @@ export default function App() {
           {/* STEP 2.75: Polyphony Limit (Chord Simplifier) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">🎹</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🎹</span>
               Chord Simplifier (Max Notes at Once)
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
               <div className="flex justify-between items-center text-sm font-medium">
                 <span className="text-neutral-400">Single Notes</span>
-                <span className="text-amber-400 font-bold bg-amber-900/20 px-3 py-1 rounded-full border border-amber-900/50">
+                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
                   Max: {polyphonyLimit} notes
                 </span>
                 <span className="text-neutral-400">10-Note Chords</span>
@@ -228,7 +228,7 @@ export default function App() {
                 max="10" 
                 value={polyphonyLimit} 
                 onChange={(e) => setPolyphonyLimit(e.target.value)}
-                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
               <p className="text-sm text-neutral-500 text-center">
@@ -240,14 +240,14 @@ export default function App() {
           {/* STEP 2.8: Smoothness (Legato/Rest Filter) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">🌊</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🌊</span>
               Smoothness (Fill Tiny Rests)
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
               <div className="flex justify-between items-center text-sm font-medium">
                 <span className="text-neutral-400">Choppy (Exact)</span>
-                <span className="text-amber-400 font-bold bg-amber-900/20 px-3 py-1 rounded-full border border-amber-900/50">
+                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
                   Smoothness: {smoothness}%
                 </span>
                 <span className="text-neutral-400">Connected (Legato)</span>
@@ -259,7 +259,7 @@ export default function App() {
                 max="100" 
                 value={smoothness} 
                 onChange={(e) => setSmoothness(e.target.value)}
-                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
               <p className="text-sm text-neutral-500 text-center">
@@ -271,7 +271,7 @@ export default function App() {
           {/* STEP 2.9: Hand Split Bias (ML Override) */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">🧠</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🧠</span>
               Hand Split Bias (AI Override)
             </label>
             
@@ -290,7 +290,7 @@ export default function App() {
                 max="50" 
                 value={handBias} 
                 onChange={(e) => setHandBias(e.target.value)}
-                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
               <p className="text-sm text-neutral-500 text-center">
@@ -302,14 +302,14 @@ export default function App() {
           {/* STEP 3: Key Signature */}
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-amber-400 text-sm">3</span>
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">3</span>
               Key Signature (Scale)
             </label>
             <div className="relative">
               <select 
                 value={keySignature} 
                 onChange={(e) => setKeySignature(e.target.value)}
-                className="w-full appearance-none p-4 text-base font-medium text-neutral-200 border border-neutral-700 rounded-2xl bg-neutral-800/50 hover:bg-neutral-700/50 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors cursor-pointer outline-none shadow-sm"
+                className="w-full appearance-none p-4 text-base font-medium text-neutral-200 border border-neutral-700 rounded-2xl bg-neutral-800/50 hover:bg-neutral-700/50 focus:ring-2 focus:ring-teal-700 focus:border-teal-700 transition-colors cursor-pointer outline-none shadow-sm"
               >
                 <option value="auto">✨ Auto-Detect (AI Picks Best)</option>
                 <option value="C">C Major / A Minor</option>
@@ -347,7 +347,7 @@ export default function App() {
               className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
                 isLoading || !file 
                   ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
-                  : 'bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 hover:shadow-amber-500/25 transform hover:-translate-y-1'
+                  : 'bg-gradient-to-r from-teal-600 to-yellow-500 hover:from-teal-400 hover:to-yellow-400 hover:shadow-teal-700/25 transform hover:-translate-y-1'
               }`}
             >
               {isLoading ? (

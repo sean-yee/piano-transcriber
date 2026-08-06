@@ -94,15 +94,18 @@ export default function App() {
       <div className="max-w-3xl mx-auto space-y-10 print:hidden">
         
         {/* --- HEADER SECTION --- */}
-        <div className="text-center space-y-4 pt-4 flex flex-col items-center">
-          {/* THE NEW LOGO */}
+        {/* Removed 'space-y-4' to kill the gap between the logo and the subtitle */}
+        <div className="text-center pt-4 flex flex-col items-center">
+          
+          {/* THE MASSIVE LOGO */}
+          {/* Changed width to 100% of its container (w-full), set a massive max-width, and removed the bottom margin (mb-0) */}
           <img 
             src="/logo.png" 
             alt="Pianopilot Logo" 
-            className="h-120 w-auto drop-shadow-2xl mb-2 object-contain"
+            className="w-full max-w-screen-xl h-auto drop-shadow-2xl mb-0 object-contain"
           />
           
-          <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
+          <p className="text-lg text-neutral-400 max-w-2xl mx-auto mt-2">
             Upload your piano audio and instantly generate clean, playable sheet music.
           </p>
         </div>

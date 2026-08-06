@@ -99,15 +99,9 @@ export default function App() {
           <img 
             src="/logo.png" 
             alt="Pianopilot Logo" 
-            className="h-70 w-auto drop-shadow-2xl mb-2 object-contain"
+            className="h-120 w-auto drop-shadow-2xl mb-2 object-contain"
           />
           
-          <h1 className="text-7xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
-            {/* Updated gradient to match the gold keys */}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-teal-700">
-              Pianopilot
-            </span>
-          </h1>
           <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
             Upload your piano audio and instantly generate clean, playable sheet music.
           </p>

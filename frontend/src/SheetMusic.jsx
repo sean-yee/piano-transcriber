@@ -168,6 +168,18 @@ export default function SheetMusic({ xmlData }) {
   return (
     <div className="w-full bg-white rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.3)] border border-slate-700 overflow-hidden print:shadow-none print:border-none print:rounded-none">
       
+      {/* THE MAGIC PRINT CSS FIX */}
+      {/* This forcefully scales the SVG down so it doesn't get chopped off on the right side of the paper */}
+      <style type="text/css" media="print">
+        {`
+          #osmd-container svg {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+          }
+        `}
+      </style>
+
       {/* 1. THE TOOLBAR */}
       {/* Contains the title and all action buttons (Play, Stop, Speed, Download) */}
       <div className="flex flex-col sm:flex-row items-center justify-between px-8 py-5 bg-slate-100 border-b border-slate-300 gap-4 print:hidden">
@@ -232,6 +244,7 @@ export default function SheetMusic({ xmlData }) {
             to OSMD on line 28, and OSMD physically injects the SVG tags directly into this space.
           */}
           <div 
+            id="osmd-container"
             ref={containerRef} 
             style={{ 
               position: 'relative', 

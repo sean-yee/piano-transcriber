@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 // Import the custom component that actually handles drawing the sheet music and playing audio
 import SheetMusic from './SheetMusic.jsx';
+// Import our new Info Modal!
+import InfoModal from './InfoModal.jsx';
 
 // --- MAIN APP COMPONENT ---
-// This is the "Command Center". It holds all the user's settings and talks to the Python backend.
 export default function App() {
   
   // --- STATE MANAGEMENT (THE SLIDERS & KNOBS) ---
@@ -20,6 +21,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false); 
   const [xmlData, setXmlData] = useState(null); 
   const [error, setError] = useState(null); 
+  
+  // --- NEW: MODAL STATE ---
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // --- EVENT HANDLERS ---
   const handleFileChange = (e) => {
@@ -88,22 +92,30 @@ export default function App() {
 
   // --- COMPONENT UI (JSX) ---
   return (
-    // Put the padding (p-6 md:p-12) back on the main wrapper so everything is contained
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-12 font-sans selection:bg-teal-700 selection:text-neutral-900 print:bg-white print:text-black print:p-0">
+    <div className="relative min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-12 font-sans selection:bg-teal-700 selection:text-neutral-900 print:bg-white print:text-black print:p-0">
       
+      {/* INFO BUTTON (Top Right) */}
+      <div className="absolute top-6 right-6 md:top-8 md:right-8 print:hidden">
+        <button 
+          onClick={() => setIsInfoOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-full text-neutral-400 hover:text-white hover:border-neutral-600 transition-all shadow-lg"
+        >
+          <span className="font-bold font-serif italic text-teal-500">i</span>
+          <span className="text-sm font-bold tracking-wide">About</span>
+        </button>
+      </div>
+
       <div className="max-w-3xl mx-auto space-y-10 print:hidden">
         
         {/* --- HEADER SECTION --- */}
         <div className="text-center space-y-4 pt-4">
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
-            
             {/* The new logo replacing the piano emoji */}
             <img 
-              src="/piano.png" 
+              src="/logo.png" 
               alt="Pianopilot Logo" 
               className="h-16 md:h-24 w-auto object-contain pb-2" 
             />
-            
             {/* The teal gradient text, massively sized up */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-teal-700 pb-2">
               Pianopilot
@@ -168,8 +180,8 @@ export default function App() {
                   <span className="text-xs mt-1">32nd Notes</span>
                 </div>
                 <div className={`flex flex-col w-1/4 ${complexity === 4 ? 'text-red-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Exact</span>
-                  <span className="text-xs mt-1">64th Notes</span>
+                  <span>Exact (Raw)</span>
+                  <span className="text-xs mt-1">No Snapping</span>
                 </div>
               </div>
             </div>
@@ -179,7 +191,7 @@ export default function App() {
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🎚️</span>
-              Volume Sensitivity
+              Ghost Note Filter (Volume Sensitivity)
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
@@ -201,7 +213,7 @@ export default function App() {
               />
               
               <p className="text-sm text-neutral-500 text-center">
-                Filters out false reads and echoes. If your sheet music looks like it has extra notes, turn this up! If it looks like its missing notes, turn it down!
+                Filters out accidental key touches and microphone echoes. If your sheet music looks too cluttered, turn this up!
               </p>
             </div>
           </div>
@@ -272,7 +284,7 @@ export default function App() {
           <div className="space-y-4">
             <label className="flex items-center gap-3 text-lg font-bold text-white">
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">🧠</span>
-              Hand Split Bias
+              Hand Split Bias (AI Override)
             </label>
             
             <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
@@ -294,7 +306,7 @@ export default function App() {
               />
               
               <p className="text-sm text-neutral-500 text-center">
-                Force more notes to the left hand or right hand if one hand seems too cluttered.
+                If the AI is putting too many bass notes in the top staff, slide this to the left to force them down!
               </p>
             </div>
           </div>
@@ -347,7 +359,7 @@ export default function App() {
               className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
                 isLoading || !file 
                   ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
-                  : 'bg-gradient-to-r from-teal-500 to-teal-700 hover:from-teal-400 hover:to-teal-600 hover:shadow-teal-700/25 transform hover:-translate-y-1'
+                  : 'bg-gradient-to-r from-teal-600 to-yellow-500 hover:from-teal-400 hover:to-yellow-400 hover:shadow-teal-700/25 transform hover:-translate-y-1'
               }`}
             >
               {isLoading ? (
@@ -370,6 +382,11 @@ export default function App() {
         <div className="max-w-6xl mx-auto w-full animate-in fade-in duration-700 pt-10 pb-20 px-4 md:px-0 print:p-0 print:pt-0">
           <SheetMusic xmlData={xmlData} />
         </div>
+      )}
+
+      {/* RENDER THE MODAL IF THE STATE IS TRUE */}
+      {isInfoOpen && (
+        <InfoModal onClose={() => setIsInfoOpen(false)} />
       )}
 
     </div>

@@ -23,7 +23,7 @@ export default function InfoModal({ onClose }) {
           </button>
         </div>
 
-        {/* Content */}
+        {/* Content (This wrapper has p-8 which aligns everything nicely!) */}
         <div className="p-8 space-y-8 text-neutral-300">
           
           <section className="space-y-3">
@@ -42,7 +42,7 @@ export default function InfoModal({ onClose }) {
             <ul className="list-disc pl-5 space-y-2 leading-relaxed text-neutral-400">
               <li><strong className="text-neutral-200">Keep it clean:</strong> The AI works best with solo piano. Background noise, vocals, or heavy drums will confuse the model.</li>
               <li><strong className="text-neutral-200">Watch the pedal:</strong> Heavy sustain pedal blends notes together, making it harder for the AI to tell when a note stops and starts.</li>
-              <li><strong className="text-neutral-200">Use the sliders:</strong> Adjust volume sensitivity, note compexity, smoothness, chord complexity, and hand splits to customize the music to your liking!</li>
+              <li><strong className="text-neutral-200">Use the sliders:</strong> Adjust volume sensitivity, note complexity, smoothness, chord complexity, and hand splits to customize the music to your liking!</li>
             </ul>
           </section>
 
@@ -71,9 +71,9 @@ export default function InfoModal({ onClose }) {
               <li>Better AI separation of left-hand vs. right-hand logic.</li>
             </ul>
           </section>
-        </div>
 
-        <section className="space-y-3 pt-4 border-t border-neutral-800">
+          {/* I moved this section INSIDE the padded wrapper! */}
+          <section className="space-y-3 pt-6 border-t border-neutral-800">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
               <span>💌</span> Feedback & Support
             </h3>
@@ -81,13 +81,15 @@ export default function InfoModal({ onClose }) {
               Find a bug? Have a feature request? I'd love to hear from you! 
               Shoot us an email at:{' '}
               <a 
-                href="mailto:pianopilot@gmail.com" 
+                href="mailto:pianopilotai@gmail.com" 
                 className="text-teal-400 hover:text-teal-300 font-bold underline decoration-teal-400/30 underline-offset-4 transition-colors"
               >
                 pianopilotai@gmail.com
               </a>
             </p>
           </section>
+
+        </div> {/* <-- The missing closing tag is safely down here now! */}
 
         {/* Footer */}
         <div className="border-t border-neutral-800 p-6 flex justify-end">

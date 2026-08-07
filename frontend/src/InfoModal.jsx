@@ -42,7 +42,7 @@ export default function InfoModal({ onClose }) {
             <ul className="list-disc pl-5 space-y-2 leading-relaxed text-neutral-400">
               <li><strong className="text-neutral-200">Keep it clean:</strong> The AI works best with solo piano. Background noise, vocals, or heavy drums will confuse the model.</li>
               <li><strong className="text-neutral-200">Watch the pedal:</strong> Heavy sustain pedal blends notes together, making it harder for the AI to tell when a note stops and starts.</li>
-              <li><strong className="text-neutral-200">Use the sliders:</strong> If your sheet music looks like a messy wall of black ink, turn up the <strong>Ghost Note Filter</strong> and lower the <strong>Polyphony Limit</strong>!</li>
+              <li><strong className="text-neutral-200">Use the sliders:</strong> Adjust volume sensitivity, note compexity, smoothness, chord complexity, and hand splits to customize the music to your liking!</li>
             </ul>
           </section>
 
@@ -50,9 +50,11 @@ export default function InfoModal({ onClose }) {
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
               <span>⚠️</span> Current Limitations
             </h3>
-            <p className="leading-relaxed">
-              Audio-to-MIDI transcription is incredibly difficult. Right now, the AI might struggle with highly complex classical runs, extreme tempos, or swing rhythms (since it snaps notes to a strict grid). It also occasionally guesses the wrong hand placement for middle-C notes.
-            </p>
+            <ul className="list-disc pl-5 space-y-2 leading-relaxed text-neutral-400">
+              <li><strong className="text-neutral-200">Wait Times & File Limits:</strong> Audio-to-MIDI machine learning is computationally heavy! Because of this, uploads are currently capped at <strong>2.4MB</strong>, and generations can take up to <strong>15 minutes</strong> to finish processing.</li>
+              <li><strong className="text-neutral-200">Complex Rhythms:</strong> The AI snaps notes to a strict grid, meaning it can struggle with extreme tempos, heavy rubato, or swing rhythms.</li>
+              <li><strong className="text-neutral-200">Hand Splitting:</strong> The model occasionally guesses the wrong hand placement for middle-C notes (use the Hand Split Bias slider to help correct this).</li>
+            </ul>
           </section>
 
           <section className="space-y-3">
@@ -70,6 +72,22 @@ export default function InfoModal({ onClose }) {
             </ul>
           </section>
         </div>
+
+        <section className="space-y-3 pt-4 border-t border-neutral-800">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <span>💌</span> Feedback & Support
+            </h3>
+            <p className="leading-relaxed text-neutral-400">
+              Find a bug? Have a feature request? I'd love to hear from you! 
+              Shoot us an email at:{' '}
+              <a 
+                href="mailto:pianopilot@gmail.com" 
+                className="text-teal-400 hover:text-teal-300 font-bold underline decoration-teal-400/30 underline-offset-4 transition-colors"
+              >
+                pianopilotai@gmail.com
+              </a>
+            </p>
+          </section>
 
         {/* Footer */}
         <div className="border-t border-neutral-800 p-6 flex justify-end">

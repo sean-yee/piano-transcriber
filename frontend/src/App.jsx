@@ -112,7 +112,7 @@ export default function App() {
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             {/* The new logo replacing the piano emoji */}
             <img 
-              src="/logo.png" 
+              src="/piano.png" 
               alt="Pianopilot Logo" 
               className="h-16 md:h-24 w-auto object-contain pb-2" 
             />

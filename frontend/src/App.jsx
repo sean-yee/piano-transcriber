@@ -17,25 +17,30 @@ export default function App() {
   const [smoothness, setSmoothness] = useState(50); 
   const [handBias, setHandBias] = useState(0); 
   
+  // --- NEW: PREVIEW & SIZE STATE ---
+  const [transcribeMode, setTranscribeMode] = useState('full'); // 'full' or 'preview'
+  const [isOversized, setIsOversized] = useState(false);
+  
   // --- UI STATE (LOADING & ERRORS) ---
   const [isLoading, setIsLoading] = useState(false); 
   const [xmlData, setXmlData] = useState(null); 
   const [error, setError] = useState(null); 
   
-  // --- NEW: MODAL STATE ---
+  // --- MODAL STATE ---
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   // --- EVENT HANDLERS ---
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      const MAX_FILE_SIZE = 2621440; // Roughly 2.5MB
       
-      const MAX_FILE_SIZE = 2621440; 
-      
+      // Instead of rejecting the file, we accept it but lock it to Preview Mode
       if (selectedFile.size > MAX_FILE_SIZE) {
-        alert("This file is a bit too large! To keep our AI running smoothly, please upload a song under 2.5MB.");
-        e.target.value = null; 
-        return; 
+        setIsOversized(true);
+        setTranscribeMode('preview');
+      } else {
+        setIsOversized(false);
       }
 
       setFile(selectedFile); 
@@ -61,6 +66,8 @@ export default function App() {
     formData.append('polyphony_limit', polyphonyLimit);
     formData.append('smoothness', smoothness);
     formData.append('hand_bias', handBias);
+    // Tell the Python backend if it should truncate the audio!
+    formData.append('preview_only', transcribeMode === 'preview');
 
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.pianopilotai.com';
@@ -110,13 +117,11 @@ export default function App() {
         {/* --- HEADER SECTION --- */}
         <div className="text-center space-y-4 pt-4">
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
-            {/* The new logo replacing the piano emoji */}
             <img 
-              src="/piano.png" 
+              src="/logo.png" 
               alt="Pianopilot Logo" 
               className="h-16 md:h-24 w-auto object-contain pb-2" 
             />
-            {/* The teal gradient text, massively sized up */}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 to-teal-700 pb-2">
               Pianopilot
             </span>
@@ -146,6 +151,67 @@ export default function App() {
                 <input type="file" className="hidden" accept="audio/*" onChange={handleFileChange} />
               </label>
             </div>
+          </div>
+
+          {/* STEP 1.5: Transcription Length (The New Feature!) */}
+          <div className="space-y-4 animate-in fade-in duration-500">
+            <label className="flex items-center gap-3 text-lg font-bold text-white">
+              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">⏱️</span>
+              Transcription Length
+            </label>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Preview Button */}
+              <button
+                onClick={() => setTranscribeMode('preview')}
+                className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                  transcribeMode === 'preview' 
+                    ? 'bg-teal-900/20 border-teal-500' 
+                    : 'bg-neutral-800/30 border-neutral-800 hover:border-neutral-600'
+                }`}
+              >
+                <div className="font-bold text-white mb-1">First 60 Seconds</div>
+                <div className="text-sm text-neutral-400">Fast generation. Great for testing sliders!</div>
+              </button>
+
+              {/* Full File Button */}
+              <button
+                onClick={() => setTranscribeMode('full')}
+                disabled={isOversized}
+                className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                  isOversized
+                    ? 'bg-neutral-900/50 border-neutral-800 opacity-50 cursor-not-allowed'
+                    : transcribeMode === 'full'
+                      ? 'bg-teal-900/20 border-teal-500'
+                      : 'bg-neutral-800/30 border-neutral-800 hover:border-neutral-600'
+                }`}
+              >
+                <div className="font-bold text-white mb-1">Full Song</div>
+                <div className="text-sm text-neutral-400">
+                  {isOversized ? 'File too large for full transcription.' : 'Transcribe the entire audio file.'}
+                </div>
+              </button>
+            </div>
+
+            {/* Dynamic Warning Messages */}
+            {transcribeMode === 'full' && !isOversized && (
+              <div className="mt-2 p-4 bg-amber-950/40 border border-amber-900/50 rounded-xl text-amber-200/90 text-sm flex items-start gap-3 animate-in slide-in-from-top-2">
+                <span className="text-lg">⚠️</span>
+                <p className="leading-relaxed">
+                  <strong>Heads up:</strong> Processing an entire song is highly computationally intensive and can take <strong>up to 15 minutes</strong>. Please don't refresh the page once started!
+                </p>
+              </div>
+            )}
+
+            {isOversized && (
+              <div className="mt-2 p-4 bg-blue-950/40 border border-blue-900/50 rounded-xl text-blue-200/90 text-sm flex items-start gap-3 animate-in slide-in-from-top-2">
+                <span className="text-lg">ℹ️</span>
+                <p className="leading-relaxed">
+                  <strong>File Size Limit:</strong> This file exceeds our 2.5MB limit, so we have automatically locked it to the 60-second preview mode to keep our servers running smoothly!
+                </p>
+              </div>
+            )}
           </div>
 
           {/* STEP 2: Complexity (Quantization) */}

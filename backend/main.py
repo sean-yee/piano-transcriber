@@ -67,7 +67,8 @@ async def transcribe_audio(
     volume_threshold: int = Form(30),
     polyphony_limit: int = Form(6),
     smoothness: int = Form(50),
-    hand_bias: int = Form(0)
+    hand_bias: int = Form(0),
+    preview_only: bool = Form(False) # <-- Added the preview flag from React
 ):
     # Set up temporary file paths to store the incoming audio and the generated data
     temp_file_path = f"temp_{file.filename}"
@@ -84,6 +85,12 @@ async def transcribe_audio(
         # Load the audio file into memory using librosa so we can analyze it
         audio, _ = librosa.load(temp_file_path, sr=sample_rate, mono=True)
         
+        # CHOP 1: Slice the librosa array if preview mode is active
+        if preview_only:
+            max_samples = 60 * sample_rate
+            audio = audio[:max_samples]
+            print("Preview Mode: Audio truncated to 60 seconds for BPM detection.")
+        
         # Calculate the actual tempo (BPM) of the song so we can draw accurate sheet music measures
         print("Detecting BPM...")
         detected_tempo, _ = librosa.beat.beat_track(y=audio, sr=sample_rate)
@@ -98,9 +105,15 @@ async def transcribe_audio(
 
         # Run the ByteDance AI to convert the audio array into a raw MIDI file
         # --- THE CHUNKING ENGINE (MULTITHREADED) ---
-        print("Slicing audio into 30-second chunks to save RAM...")
+        print("Slicing audio into chunks to save RAM...")
         
         audio_segment = AudioSegment.from_file(temp_file_path)
+        
+        # CHOP 2: Slice the pydub AudioSegment if preview mode is active (pydub uses milliseconds)
+        if preview_only:
+            audio_segment = audio_segment[:60000]
+            print("Preview Mode: AudioSegment truncated to 60 seconds for AI processing.")
+            
         chunk_length_ms = 30000  # 30 seconds
         
         chunks = [audio_segment[i:i + chunk_length_ms] for i in range(0, len(audio_segment), chunk_length_ms)]

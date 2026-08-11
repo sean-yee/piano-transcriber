@@ -21,8 +21,10 @@ export default function App() {
   const [transcribeMode, setTranscribeMode] = useState('full'); // 'full' or 'preview'
   const [isOversized, setIsOversized] = useState(false);
   
-  // --- UI STATE (LOADING & ERRORS) ---
+  // --- UI STATE (LOADING, ERRORS, & PROGRESS) ---
   const [isLoading, setIsLoading] = useState(false); 
+  const [progress, setProgress] = useState(0);              // <-- NEW
+  const [loadingMessage, setLoadingMessage] = useState(""); // <-- NEW
   const [xmlData, setXmlData] = useState(null); 
   const [error, setError] = useState(null); 
   
@@ -55,6 +57,8 @@ export default function App() {
     }
 
     setIsLoading(true);
+    setProgress(0);                            // <-- NEW: Reset progress
+    setLoadingMessage("Uploading file...");    // <-- NEW: Initial message
     setError(null);
     setXmlData(null); 
 
@@ -72,6 +76,7 @@ export default function App() {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.pianopilotai.com';
 
+      // 1. Send the file and get the Pager (Task ID)
       const response = await fetch(`${API_BASE_URL}/transcribe`, {
         method: 'POST',
         body: formData,
@@ -81,20 +86,57 @@ export default function App() {
         throw new Error(`Server responded with a ${response.status} error.`);
       }
 
-      const data = await response.json();
+      const initialData = await response.json();
       
-      if (data.status === 'error') {
-        throw new Error(data.message);
+      if (initialData.status !== "success") {
+        throw new Error(initialData.message || "Failed to start transcription.");
       }
 
-      setXmlData(data.xml_data);
-      
+      const taskId = initialData.task_id;
+
+      // 2. Start the Polling Loop (Ask "Are we there yet?" every 2 seconds)
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`${API_BASE_URL}/status/${taskId}`);
+          
+          if (!statusResponse.ok) {
+            // If the server is unreachable for a second, just skip this beat
+            return;
+          }
+          
+          const statusData = await statusResponse.json();
+
+          // 3. Update the UI Progress Bar!
+          if (statusData.progress !== undefined) {
+             setProgress(statusData.progress);
+          }
+          if (statusData.message) {
+             setLoadingMessage(statusData.message);
+          }
+
+          // 4. Check if it is completely finished
+          if (statusData.status === "complete") {
+            clearInterval(pollInterval); // Stop asking
+            setXmlData(statusData.xml_data);
+            setIsLoading(false);
+            
+          } else if (statusData.status === "error") {
+            clearInterval(pollInterval); // Stop asking
+            setError(statusData.message || "An error occurred during transcription.");
+            setIsLoading(false);
+          }
+          
+        } catch (pollError) {
+          console.error("Polling error:", pollError);
+          // Don't clear interval on a single network blip, just let it try again in 2 seconds
+        }
+      }, 2000); // 2000 milliseconds = 2 seconds
+
     } catch (err) {
       console.error(err);
-      setError(err.message || "An error occurred during transcription.");
-    } finally {
+      setError(err.message || "An error occurred during upload.");
       setIsLoading(false);
-    }
+    } 
   };
 
   // --- COMPONENT UI (JSX) ---
@@ -419,27 +461,37 @@ export default function App() {
               </div>
             )}
             
-            <button
-              onClick={handleTranscribe}
-              disabled={isLoading || !file}
-              className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
-                isLoading || !file 
-                  ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
-                  : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-400 hover:to-teal-600 hover:shadow-teal-700/25 transform hover:-translate-y-1'
-              }`}
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-3">
-                  <svg className="animate-spin h-5 w-5 text-neutral-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Transcribing...
-                </span>
-              ) : (
-                '✨ Generate Sheet Music'
-              )}
-            </button>
+            {/* NEW: THE LOADING STATE UI */}
+            {isLoading ? (
+              <div className="w-full space-y-4 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center text-sm font-bold text-teal-500">
+                  <span>{loadingMessage}</span>
+                  <span>{progress}%</span>
+                </div>
+                {/* The Visual Progress Bar */}
+                <div className="w-full h-4 bg-neutral-800 rounded-full overflow-hidden border border-neutral-700">
+                  <div 
+                    className="h-full bg-gradient-to-r from-teal-600 to-teal-400 transition-all duration-500 ease-out relative"
+                    style={{ width: `${progress}%` }}
+                  >
+                    {/* Tiny shimmer effect on the bar */}
+                    <div className="absolute inset-0 bg-white/20 w-10 animate-[shimmer_2s_infinite] -skew-x-12"></div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={handleTranscribe}
+                disabled={!file}
+                className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
+                  !file 
+                    ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
+                    : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-400 hover:to-teal-600 hover:shadow-teal-700/25 transform hover:-translate-y-1'
+                }`}
+              >
+                ✨ Generate Sheet Music
+              </button>
+            )}
           </div>
         </div>
       </div>

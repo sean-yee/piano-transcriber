@@ -118,7 +118,7 @@ export default function App() {
         <div className="text-center space-y-4 pt-4">
           <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight flex items-center justify-center gap-4">
             <img 
-              src="/logo.png" 
+              src="/piano.png" 
               alt="Pianopilot Logo" 
               className="h-16 md:h-24 w-auto object-contain pb-2" 
             />
@@ -425,7 +425,7 @@ export default function App() {
               className={`w-full md:w-auto px-10 py-4 rounded-2xl text-neutral-900 font-extrabold text-lg shadow-lg transition-all duration-300 ${
                 isLoading || !file 
                   ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-700 shadow-none' 
-                  : 'bg-gradient-to-r from-teal-600 to-yellow-500 hover:from-teal-400 hover:to-yellow-400 hover:shadow-teal-700/25 transform hover:-translate-y-1'
+                  : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-400 hover:to-teal-600 hover:shadow-teal-700/25 transform hover:-translate-y-1'
               }`}
             >
               {isLoading ? (

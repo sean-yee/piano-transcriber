@@ -98,27 +98,34 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
             os.remove(c_wav) 
             return index, c_mid
 
-        active_tasks[task_id]["message"] = "Our AI is transcrbing the notes..."
+        active_tasks[task_id]["message"] = "Transcrbing the notes..."
         
-        # --- THE PROGRESS LOOP ---
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            future_to_chunk = {executor.submit(process_chunk, i, chunk): i for i, chunk in enumerate(chunks)}
+        # --- THE PROGRESS LOOP (SEQUENTIAL FIX) ---
+        completed = 0
+        total_chunks = len(chunks)
+        midi_paths = []
+        
+        for i, chunk in enumerate(chunks):
+            # Process one chunk at a time using the full power of both CPU cores
+            c_wav = f"{base_name}_chunk_{i}.wav"
+            c_mid = f"{base_name}_chunk_{i}.mid"
             
-            completed = 0
-            total_chunks = len(chunks)
+            chunk.export(c_wav, format="wav")
+            c_array, _ = librosa.load(c_wav, sr=sample_rate, mono=True)
             
-            for future in as_completed(future_to_chunk):
-                idx, completed_mid_path = future.result()
-                midi_paths[idx] = completed_mid_path
-                completed += 1
-                
-                # Math for the progress bar (reserving 10% to 70% for the AI transcription phase)
-                ai_progress = int((completed / total_chunks) * 60) 
-                current_progress = 10 + ai_progress
-                
-                active_tasks[task_id]["progress"] = current_progress
-                active_tasks[task_id]["message"] = f"Transcribing audio ({completed}/{total_chunks} chunks)..."
-                print(f"✅ Task {task_id}: Finished chunk {idx + 1}/{total_chunks}")
+            transcriptor.transcribe(c_array, c_mid)
+            os.remove(c_wav) 
+            
+            midi_paths.append(c_mid)
+            completed += 1
+            
+            # Update the progress bar!
+            ai_progress = int((completed / total_chunks) * 85) 
+            current_progress = 5 + ai_progress
+            
+            active_tasks[task_id]["progress"] = current_progress
+            active_tasks[task_id]["message"] = f"Listening carefully to the song ({completed}/{total_chunks})..."
+            print(f"✅ Task {task_id}: Finished chunk {completed}/{total_chunks}")
             
         # --- STITCHING THE MIDI ---
         active_tasks[task_id]["message"] = "Assembling the tracks..."

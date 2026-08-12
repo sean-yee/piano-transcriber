@@ -40,7 +40,7 @@ export default function InfoModal({ onClose }) {
               <span>📖</span> How to get the best results
             </h3>
             <ul className="list-disc pl-5 space-y-2 leading-relaxed text-neutral-400">
-              <li><strong className="text-neutral-200">Keep it clean:</strong> The AI works best with solo piano. Background noise, vocals, or heavy drums will confuse the model.</li>
+              <li><strong className="text-neutral-200">Keep it clean:</strong> The AI works best with solo piano. Background noise, vocals, or other instruments will confuse the model.</li>
               <li><strong className="text-neutral-200">Watch the pedal:</strong> Heavy sustain pedal blends notes together, making it harder for the AI to tell when a note stops and starts.</li>
               <li><strong className="text-neutral-200">Use the sliders:</strong> Adjust volume sensitivity, note complexity, smoothness, chord complexity, and hand splits to customize the music to your liking!</li>
             </ul>

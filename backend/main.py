@@ -98,7 +98,7 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
             os.remove(c_wav) 
             return index, c_mid
 
-        active_tasks[task_id]["message"] = "Running ByteDance AI on CPU cores..."
+        active_tasks[task_id]["message"] = "Our AI is transcrbing the notes..."
         
         # --- THE PROGRESS LOOP ---
         with ThreadPoolExecutor(max_workers=2) as executor:
@@ -121,7 +121,7 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
                 print(f"✅ Task {task_id}: Finished chunk {idx + 1}/{total_chunks}")
             
         # --- STITCHING THE MIDI ---
-        active_tasks[task_id]["message"] = "Stitching chunks and building MIDI..."
+        active_tasks[task_id]["message"] = "Assembling the tracks..."
         active_tasks[task_id]["progress"] = 75
 
         merged_midi = pretty_midi.PrettyMIDI()
@@ -147,7 +147,7 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
         merged_midi.write(temp_midi_path) 
         
         # --- MUSIC21 PARSING & FILTERING ---
-        active_tasks[task_id]["message"] = "Cleaning up ghost notes and chords..."
+        active_tasks[task_id]["message"] = "Filtering out imperfections..."
         active_tasks[task_id]["progress"] = 80
 
         parsed_score = converter.parse(temp_midi_path)
@@ -270,7 +270,7 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
                     c_left.quarterLength = el.quarterLength
                     flat_left.insert(el.offset, c_left)
 
-        active_tasks[task_id]["message"] = "Quantizing rhythms and building sheet music..."
+        active_tasks[task_id]["message"] = "Drawing sheet music..."
         active_tasks[task_id]["progress"] = 90
 
         def sequence_hand(hand_stream):
@@ -447,7 +447,7 @@ def process_audio_background(task_id: str, temp_file_path: str, base_name: str, 
         grand_staff.insert(0, right_hand)
         grand_staff.insert(0, left_hand)
         
-        active_tasks[task_id]["message"] = "Rendering final XML files..."
+        active_tasks[task_id]["message"] = "Adding finishing touches..."
         active_tasks[task_id]["progress"] = 98
 
         grand_staff.write("musicxml", fp=temp_xml_path, makeNotation=True)

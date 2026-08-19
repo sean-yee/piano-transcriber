@@ -1,9 +1,12 @@
 // --- IMPORTS ---
+import drivePicker from 'react-google-drive-picker';
+const useDrivePicker = drivePicker.default || drivePicker;
 import React, { useState, useEffect, useRef } from 'react';
 // Import the custom component that actually handles drawing the sheet music and playing audio
 import SheetMusic from './SheetMusic.jsx';
 // Import our new Info Modal!
 import InfoModal from './InfoModal.jsx';
+
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
@@ -31,6 +34,8 @@ export default function App() {
   // --- MODAL STATE ---
   const [isInfoOpen, setIsInfoOpen] = useState(false);
 
+  const [openPicker, authResponse] = useDrivePicker();
+
   // --- EVENT HANDLERS ---
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -48,6 +53,51 @@ export default function App() {
       setFile(selectedFile); 
       setError(null); 
     }
+  };
+
+  const handleDriveUpload = () => {
+    openPicker({
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID, // Your Client ID
+      developerKey: import.meta.env.VITE_GOOGLE_API_KEY, // Your API Key
+      viewId: "DOCS", 
+      // Force the picker to only show audio files!
+      viewMimeTypes: "audio/mpeg,audio/wav,audio/x-wav,audio/mp3,audio/flac", 
+      showUploadView: false,
+      multiselect: false,
+      callbackFunction: async (data) => {
+        if (data.action === 'picked') {
+          const driveFile = data.docs[0];
+          
+          setIsLoading(true);
+          setLoadingMessage("Downloading file from Google Drive...");
+          
+          try {
+            // 1. Grab the temporary access token Google gave us
+            const token = data.token || authResponse?.access_token;
+            
+            // 2. Fetch the actual audio file data directly from Google Drive
+            const response = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFile.id}?alt=media`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            
+            if (!response.ok) throw new Error("Could not download file from Drive");
+            
+            // 3. Convert the raw data into a Blob, and then into a standard File object
+            const blob = await response.blob();
+            const downloadedFile = new File([blob], driveFile.name, { type: driveFile.mimeType });
+            
+            // 4. Pretend the user uploaded this file from their computer to trigger your existing size checks!
+            handleFileChange({ target: { files: [downloadedFile] } });
+            
+          } catch (err) {
+            console.error(err);
+            setError("Failed to import file from Google Drive.");
+          } finally {
+            setIsLoading(false);
+          }
+        }
+      },
+    });
   };
 
   const handleTranscribe = async () => {
@@ -182,16 +232,57 @@ export default function App() {
               <span className="flex items-center justify-center w-7 h-7 rounded-full bg-neutral-800 text-teal-600 text-sm">1</span>
               Upload Audio (.mp3, .wav)
             </label>
-            <div className="w-full">
-              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-neutral-700 border-dashed rounded-2xl cursor-pointer bg-neutral-800/30 hover:bg-neutral-800/60 hover:border-neutral-500 transition-all group">
+            
+            {/* The Symmetrical Upload Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              
+              {/* Option A: Local Mac Upload */}
+              <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-neutral-700 border-dashed rounded-2xl cursor-pointer bg-neutral-800/30 hover:bg-neutral-800/60 hover:border-teal-600 transition-all group">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                  <span className="text-4xl mb-3 grayscale opacity-80 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">🎵</span>
-                  <p className="text-sm font-medium text-neutral-300">
-                    {file ? <span className="text-teal-600 font-bold">{file.name}</span> : "Click to upload or drag and drop"}
+                  <span className="text-4xl mb-3 grayscale opacity-80 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300">💻</span>
+                  <p className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
+                    My Computer
                   </p>
                 </div>
                 <input type="file" className="hidden" accept="audio/*" onChange={handleFileChange} />
               </label>
+
+              {/* Option B: Google Drive Upload */}
+              <button 
+                onClick={handleDriveUpload}
+                disabled={isLoading}
+                className="flex flex-col items-center justify-center w-full h-36 border-2 border-neutral-700 border-dashed rounded-2xl cursor-pointer bg-neutral-800/30 hover:bg-neutral-800/60 hover:border-teal-600 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                  
+                  {/* THE REAL GOOGLE DRIVE LOGO */}
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" 
+                    alt="Google Drive"
+                    className="w-10 h-10 mb-3 opacity-90 group-hover:scale-110 group-hover:-translate-y-1 transition-all duration-300" 
+                  />
+                  
+                  <p className="text-sm font-medium text-neutral-300 group-hover:text-white transition-colors">
+                    Google Drive
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* A slick, animated banner that slides down when a file is successfully selected! */}
+            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${file ? 'max-h-20 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+              <div className="flex items-center gap-3 p-4 bg-teal-900/20 border border-teal-800/50 rounded-xl text-teal-100 shadow-inner">
+                <span className="text-xl">🎵</span>
+                <span className="text-sm font-bold truncate">Selected: {file?.name}</span>
+                {/* A clear button so the user can easily swap files */}
+                <button 
+                  onClick={() => setFile(null)}
+                  className="ml-auto flex items-center justify-center w-6 h-6 rounded-full bg-teal-900/40 text-teal-400 hover:text-white hover:bg-teal-700 transition-colors"
+                  title="Remove file"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           </div>
 

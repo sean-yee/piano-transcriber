@@ -21,7 +21,7 @@ export default function App() {
   const [handBias, setHandBias] = useState(0); 
   
   // --- NEW: PREVIEW & SIZE STATE ---
-  const [transcribeMode, setTranscribeMode] = useState('full'); // 'full' or 'preview'
+  const [transcribeMode, setTranscribeMode] = useState('preview'); // 'full' or 'preview'
   const [isOversized, setIsOversized] = useState(false);
   
   // --- UI STATE (LOADING, ERRORS, & PROGRESS) ---
@@ -354,7 +354,7 @@ export default function App() {
               Sheet Music Complexity (Grid Snap)
             </label>
             
-            <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-8">
+            <div className="bg-neutral-800/30 border border-neutral-800 p-4 sm:p-6 rounded-2xl space-y-6">
               <input 
                 type="range" 
                 min="1" 
@@ -365,22 +365,22 @@ export default function App() {
                 className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
-              <div className="flex justify-between text-center">
-                <div className={`flex flex-col w-1/4 ${complexity === 1 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Beginner</span>
-                  <span className="text-xs mt-1">8th Notes</span>
+              <div className="flex justify-between text-center gap-1 sm:gap-2">
+                <div className={`flex flex-col w-1/4 ${complexity === 1 ? 'text-teal-600 font-bold scale-105 sm:scale-110 transition-all' : 'text-neutral-500'}`}>
+                  <span className="text-[10px] sm:text-sm leading-tight">Beginner</span>
+                  <span className="text-[8px] sm:text-xs mt-1">8th Notes</span>
                 </div>
-                <div className={`flex flex-col w-1/4 ${complexity === 2 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Intermediate</span>
-                  <span className="text-xs mt-1">16th Notes</span>
+                <div className={`flex flex-col w-1/4 ${complexity === 2 ? 'text-teal-600 font-bold scale-105 sm:scale-110 transition-all' : 'text-neutral-500'}`}>
+                  <span className="text-[10px] sm:text-sm leading-tight">Intermediate</span>
+                  <span className="text-[8px] sm:text-xs mt-1">16th Notes</span>
                 </div>
-                <div className={`flex flex-col w-1/4 ${complexity === 3 ? 'text-teal-600 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Advanced</span>
-                  <span className="text-xs mt-1">32nd Notes</span>
+                <div className={`flex flex-col w-1/4 ${complexity === 3 ? 'text-teal-600 font-bold scale-105 sm:scale-110 transition-all' : 'text-neutral-500'}`}>
+                  <span className="text-[10px] sm:text-sm leading-tight">Advanced</span>
+                  <span className="text-[8px] sm:text-xs mt-1">32nd Notes</span>
                 </div>
-                <div className={`flex flex-col w-1/4 ${complexity === 4 ? 'text-red-400 font-bold scale-110 transition-all' : 'text-neutral-500'}`}>
-                  <span>Exact (Raw)</span>
-                  <span className="text-xs mt-1">No Snapping</span>
+                <div className={`flex flex-col w-1/4 ${complexity === 4 ? 'text-red-400 font-bold scale-105 sm:scale-110 transition-all' : 'text-neutral-500'}`}>
+                  <span className="text-[10px] sm:text-sm leading-tight">Exact (Raw)</span>
+                  <span className="text-[8px] sm:text-xs mt-1">No Snap</span>
                 </div>
               </div>
             </div>
@@ -393,13 +393,11 @@ export default function App() {
               Ghost Note Filter (Volume Sensitivity)
             </label>
             
-            <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-neutral-400">Pick up every whisper</span>
-                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
+            <div className="bg-neutral-800/30 border border-neutral-800 p-4 sm:p-6 rounded-2xl space-y-4">
+              <div className="flex justify-center">
+                <span className="text-teal-600 text-xs sm:text-sm font-bold bg-teal-900/20 px-4 py-1.5 rounded-full border border-teal-900/50">
                   Threshold: {volumeThreshold}
                 </span>
-                <span className="text-neutral-400">Loud notes only</span>
               </div>
               
               <input 
@@ -411,7 +409,12 @@ export default function App() {
                 className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
-              <p className="text-sm text-neutral-500 text-center">
+              <div className="flex justify-between items-start text-[10px] sm:text-sm font-medium text-neutral-400">
+                <span className="w-1/3 text-left leading-tight">Pick up every whisper</span>
+                <span className="w-1/3 text-right leading-tight">Loud notes only</span>
+              </div>
+              
+              <p className="text-xs sm:text-sm text-neutral-500 text-center pt-2">
                 Filters out accidental key touches and microphone echoes. If your sheet music looks too cluttered, turn this up!
               </p>
             </div>
@@ -424,13 +427,11 @@ export default function App() {
               Chord Simplifier (Max Notes at Once)
             </label>
             
-            <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-neutral-400">Single Notes</span>
-                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
+            <div className="bg-neutral-800/30 border border-neutral-800 p-4 sm:p-6 rounded-2xl space-y-4">
+              <div className="flex justify-center">
+                <span className="text-teal-600 text-xs sm:text-sm font-bold bg-teal-900/20 px-4 py-1.5 rounded-full border border-teal-900/50">
                   Max: {polyphonyLimit} notes
                 </span>
-                <span className="text-neutral-400">10-Note Chords</span>
               </div>
               
               <input 
@@ -442,7 +443,12 @@ export default function App() {
                 className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
-              <p className="text-sm text-neutral-500 text-center">
+              <div className="flex justify-between items-start text-[10px] sm:text-sm font-medium text-neutral-400">
+                <span className="w-1/3 text-left leading-tight">Single Notes</span>
+                <span className="w-1/3 text-right leading-tight">10-Note Chords</span>
+              </div>
+              
+              <p className="text-xs sm:text-sm text-neutral-500 text-center pt-2">
                 Prevents the AI from writing impossible 7-note chords by only keeping the loudest notes being played at any given moment.
               </p>
             </div>
@@ -455,13 +461,11 @@ export default function App() {
               Smoothness (Fill Tiny Rests)
             </label>
             
-            <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-neutral-400">Choppy (Exact)</span>
-                <span className="text-teal-600 font-bold bg-teal-900/20 px-3 py-1 rounded-full border border-teal-900/50">
+            <div className="bg-neutral-800/30 border border-neutral-800 p-4 sm:p-6 rounded-2xl space-y-4">
+              <div className="flex justify-center">
+                <span className="text-teal-600 text-xs sm:text-sm font-bold bg-teal-900/20 px-4 py-1.5 rounded-full border border-teal-900/50">
                   Smoothness: {smoothness}%
                 </span>
-                <span className="text-neutral-400">Connected (Legato)</span>
               </div>
               
               <input 
@@ -473,7 +477,12 @@ export default function App() {
                 className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
-              <p className="text-sm text-neutral-500 text-center">
+              <div className="flex justify-between items-start text-[10px] sm:text-sm font-medium text-neutral-400">
+                <span className="w-1/3 text-left leading-tight">Choppy (Exact)</span>
+                <span className="w-1/3 text-right leading-tight">Connected (Legato)</span>
+              </div>
+              
+              <p className="text-xs sm:text-sm text-neutral-500 text-center pt-2">
                 Extends notes to fill awkward tiny gaps. High smoothness removes choppy rests and connects chords together beautifully.
               </p>
             </div>
@@ -486,13 +495,11 @@ export default function App() {
               Hand Split Bias (AI Override)
             </label>
             
-            <div className="bg-neutral-800/30 border border-neutral-800 p-6 rounded-2xl space-y-6">
-              <div className="flex justify-between items-center text-sm font-medium">
-                <span className="text-neutral-400">Force Left Hand (Bass)</span>
-                <span className={`font-bold px-3 py-1 rounded-full ${handBias < 0 ? 'bg-purple-900/30 text-purple-400' : handBias > 0 ? 'bg-orange-900/30 text-orange-400' : 'bg-neutral-700/50 text-neutral-300'}`}>
-                  {handBias == 0 ? "AI Default (50/50)" : handBias > 0 ? `+${handBias} Right Hand` : `${handBias} Left Hand`}
+            <div className="bg-neutral-800/30 border border-neutral-800 p-4 sm:p-6 rounded-2xl space-y-4">
+              <div className="flex justify-center">
+                <span className={`text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full border ${handBias < 0 ? 'bg-purple-900/30 text-purple-400 border-purple-900/50' : handBias > 0 ? 'bg-orange-900/30 text-orange-400 border-orange-900/50' : 'bg-neutral-700/50 text-neutral-300 border-neutral-600'}`}>
+                  {handBias == 0 ? "AI Default (50/50)" : handBias > 0 ? `+${handBias} Right Hand` : `${Math.abs(handBias)} Left Hand`}
                 </span>
-                <span className="text-neutral-400">Force Right Hand (Treble)</span>
               </div>
               
               <input 
@@ -504,7 +511,12 @@ export default function App() {
                 className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-teal-700"
               />
               
-              <p className="text-sm text-neutral-500 text-center">
+              <div className="flex justify-between items-start text-[10px] sm:text-sm font-medium text-neutral-400">
+                <span className="w-1/3 text-left leading-tight">Force Left Hand (Bass)</span>
+                <span className="w-1/3 text-right leading-tight">Force Right Hand (Treble)</span>
+              </div>
+              
+              <p className="text-xs sm:text-sm text-neutral-500 text-center pt-2">
                 If the AI is putting too many bass notes in the top staff, slide this to the left to force them down!
               </p>
             </div>
